@@ -188,13 +188,13 @@ svg.fig{display:block;width:100%;height:auto}
 .segs i.d{background:var(--good)}
 .segs i.c{background:var(--accent)}
 .iconbtn{border:0;background:var(--surface);width:42px;height:42px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow);flex:none}
-.p-fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#F7F7FB 50%,#D2D2DE 50%);border-radius:24px;position:relative;touch-action:pan-y}
+.p-fig{flex:1;min-height:160px;display:flex;align-items:center;justify-content:center;background:linear-gradient(#F7F7FB 50%,#D2D2DE 50%);border-radius:24px;position:relative;touch-action:pan-y}
 .p-fig svg{max-height:100%;width:auto;max-width:100%;height:100%}
 .p-fig .side{position:absolute;top:12px;left:12px}
 .side{display:inline-flex;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
 .p-mid{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
 .p-name{display:flex;flex-direction:column;gap:4px;min-width:0}
-.p-desc{font-size:.9rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.p-desc{font-size:.92rem;line-height:1.45;color:var(--muted);margin-top:-4px}
 .ring{position:relative;width:112px;height:112px;flex:none}
 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .ring .trk{fill:none;stroke:var(--surface-2);stroke-width:9}
@@ -247,7 +247,7 @@ svg.fig{display:block;width:100%;height:auto}
 .heat.h8{grid-template-columns:repeat(8,1fr)}
 .nextq{display:flex;flex-direction:column;gap:10px;text-align:left;margin-top:6px}
 .fin{justify-content:flex-start;padding-top:12px}
-@media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{-webkit-line-clamp:2}.ctrl .main{width:64px;height:64px}}
+@media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{font-size:.86rem}.ctrl .main{width:64px;height:64px}.ring .lbl small{font-size:.58rem;letter-spacing:.04em}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -954,8 +954,9 @@ function renderPlayer(newFig) {
       h("button", { class: "iconbtn", "aria-label": store.settings.sound ? "Išjungti garsą" : "Įjungti garsą", on: { click: () => { store.settings.sound = !store.settings.sound; save(); renderPlayer(false); } } }, icon(store.settings.sound ? "sound" : "mute"))),
     fig,
     h("div", { class: "p-mid" },
-      h("div", { class: "p-name" }, h("p", { class: "eyebrow num" }, TRACKS[P_.t].n + " · " + (P_.i + 1) + " / " + total), h("h2", {}, ex.n), h("p", { class: "p-desc" }, ex.d)),
+      h("div", { class: "p-name" }, h("p", { class: "eyebrow num" }, TRACKS[P_.t].n + " · " + (P_.i + 1) + " / " + total), h("h2", {}, ex.n)),
       ring),
+    h("p", { class: "p-desc" }, ex.d),
     h("div", { class: "ctrl" },
       h("button", { class: "sm", "aria-label": "Ankstesnis", on: { click: () => goStep(P_.i - 1) } }, icon("prev")),
       mainBtn,
