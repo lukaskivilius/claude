@@ -228,6 +228,25 @@ svg.fig{display:block;width:100%;height:auto}
 .opt .t2{display:flex;flex-direction:column;gap:2px}
 .opt .t2 small{color:var(--muted);font-weight:500;font-size:.85rem;line-height:1.4}
 .dotn{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;flex:none}
+/* track cards + session grid */
+.tracks{display:flex;flex-direction:column;gap:12px;text-align:left}
+.tcard{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);display:grid;grid-template-columns:132px 1fr;overflow:hidden}
+.tcard .tfig{border:0;padding:0;background:linear-gradient(#F7F7FB 50%,#D2D2DE 50%);display:flex;align-items:center;min-height:100%}
+.tcard .tfig .fbox{width:100%;border-radius:0}
+.tcard .tbody{padding:14px 14px 14px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.tcard h2{font-size:1.25rem}
+.tsub{font-size:.85rem;line-height:1.35}
+.tmeta{font-size:.85rem;font-weight:700;color:var(--accent)}
+.tcard.did .tmeta{color:var(--good)}
+.tbtn{padding:11px 14px;font-size:.92rem;border-radius:14px}
+.tbtn .ico{width:16px;height:16px}
+.sgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.sg{border:0;aspect-ratio:1;border-radius:10px;background:var(--surface);box-shadow:var(--shadow);font-weight:700;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;padding:0}
+.sg.done{background:var(--good);color:#fff}
+.sg.cur{box-shadow:0 0 0 2px var(--accent) inset;color:var(--ink)}
+.heat.h8{grid-template-columns:repeat(8,1fr)}
+.nextq{display:flex;flex-direction:column;gap:10px;text-align:left;margin-top:6px}
+.fin{justify-content:flex-start;padding-top:12px}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{-webkit-line-clamp:2}.ctrl .main{width:64px;height:64px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -244,7 +263,7 @@ svg.fig{display:block;width:100%;height:auto}
 const RAD = Math.PI / 180;
 const LEN = { torso: 50, neck: 6, head: 9, ua: 24, fa: 22, th: 33, sh: 33, foot: 9 };
 const GROUND = 180;
-const S = { t: 180, la: [0, 0], ra: [0, 0], ll: [0, 0], rl: [0, 0] };
+const S = { t: 180, la: [0, 0], ra: [0, 0], ll: [0, 0], rl: [0, 0], rp: 0 };
 const P = o => Object.assign({}, S, o);
 
 function joints(p, front, mirror) {
@@ -262,7 +281,7 @@ function joints(p, front, mirror) {
   const eL = add(shL, p.la[0], LEN.ua), hL = add(eL, p.la[1], LEN.fa);
   const kR = add(hipR, p.rl[0], LEN.th), fR = add(kR, p.rl[1], LEN.sh);
   const kL = add(hipL, p.ll[0], LEN.th), fL = add(kL, p.ll[1], LEN.sh);
-  const tR = add(fR, p.rl[1] + 90, front ? 4 : LEN.foot);
+  const tR = add(fR, p.rl[1] + 90 * (1 - (p.rp || 0)), front ? 4 : LEN.foot);
   const tL = add(fL, p.ll[1] + (front ? -90 : 90), front ? 4 : LEN.foot);
   const j = { hip, top, head, shR, shL, hipR, hipL, eR, hR, eL, hL, kR, fR, tR, kL, fL, tL };
   if (mirror) for (const k in j) j[k] = [-j[k][0], j[k][1]];
@@ -277,13 +296,14 @@ function anchorX(j, a) {
 function lerpPose(a, b, u) {
   const l = (x, y) => x + (y - x) * u;
   return { t: l(a.t, b.t), la: [l(a.la[0], b.la[0]), l(a.la[1], b.la[1])], ra: [l(a.ra[0], b.ra[0]), l(a.ra[1], b.ra[1])],
-    ll: [l(a.ll[0], b.ll[0]), l(a.ll[1], b.ll[1])], rl: [l(a.rl[0], b.rl[0]), l(a.rl[1], b.rl[1])] };
+    ll: [l(a.ll[0], b.ll[0]), l(a.ll[1], b.ll[1])], rl: [l(a.rl[0], b.rl[0]), l(a.rl[1], b.rl[1])], rp: l(a.rp || 0, b.rp || 0) };
 }
 const ease = u => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
 
 /* ---------- Pratimai ---------- */
 const GUARD_S = { la: [25, 160], ra: [15, 168] };
 const GUARD_F = { la: [-18, 172], ra: [18, -172] };
+const RH_STANCE = { t: 182, ll: [14, 10], rl: [-16, -12], la: [25, 160], ra: [15, 168] };
 const HIPS_S = { la: [-30, 60], ra: [-30, 60] };
 const HIPS_F = { la: [-35, 55], ra: [35, -55] };
 
@@ -324,12 +344,18 @@ const EX = {
     k: [[P(HIPS_S), 1.4], [P(Object.assign({ t: 186, rl: [95, 95] }, HIPS_S)), 2], [P(Object.assign({ t: 186, rl: [95, 95] }, HIPS_S)), 1.5]] },
   leg_raise_side: { n: "Kojos kėlimas į šoną", v: "front", a: "lf", d: "Stovėk tiesiai ir lėtai kelk tiesią koją į šoną, liemuo pasvyra šiek tiek į kitą pusę. Palaikyk viršuje, nuleisk lėtai.",
     k: [[P(HIPS_F), 1.4], [P(Object.assign({ t: 200, rl: [70, 70] }, HIPS_F)), 2], [P(Object.assign({ t: 200, rl: [70, 70] }, HIPS_F)), 1.5]] },
-  front_kick: { n: "Tiesus spyris", v: "side", a: "lf", d: "Pakelk kelį (užtaisymas), ištiesk koją pirmyn, grįžk į užtaisymą ir pastatyk koją. Rankos saugo galvą.",
+  front_kick: { n: "Tiesus spyris (tipas)", v: "side", a: "lf", d: "Pakelk kelį (užtaisymas), ištiesk koją pirmyn, grįžk į užtaisymą ir pastatyk koją. Rankos saugo galvą.",
     k: [[P(GUARD_S), .6], [P(Object.assign({ t: 185, rl: [100, -5] }, GUARD_S)), .35], [P(Object.assign({ t: 190, rl: [100, 100] }, GUARD_S)), .45], [P(Object.assign({ t: 185, rl: [100, -5] }, GUARD_S)), .45]] },
   side_kick: { n: "Šoninis spyris", v: "front", a: "lf", d: "Kelis kyla į šoną, koja tiesiama į šoną, liemuo pasvyra į priešingą pusę. Valdyk judesį nuo pradžios iki galo.",
     k: [[P(GUARD_F), .6], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .4], [P(Object.assign({ t: 215, rl: [108, 112] }, GUARD_F)), .55], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .45]] },
-  high_kick: { n: "Spyris į galvos aukštį", v: "side", a: "lf", tg: 2, d: "Užtaisyk kelį aukštai, pasisuk ant atraminės kojos ir ištiesk koją iki taikinio galvos aukštyje. Lėtai ir tiksliai, ne per jėgą.",
-    k: [[P(GUARD_S), .7], [P(Object.assign({ t: 195, rl: [125, 0] }, GUARD_S)), .45], [P(Object.assign({ t: 222, rl: [143, 145] }, GUARD_S)), .7], [P(Object.assign({ t: 195, rl: [125, 0] }, GUARD_S)), .5]] },
+  high_kick: { n: "Apvalus spyris į galvą", v: "side", a: "lf", tg: 2, d: "Iš kovinės stovėsenos užtaisyk galinės kojos kelį, pasisuk ant priekinės kojos pirštų ir mesk koją ratu į galvos aukštį. Smūgis keltis ar blauzda, liemuo atsilošia, galinė ranka eina žemyn atsvarai. Grįžk į stovėseną.",
+    k: [[P(RH_STANCE), .7], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [112, -80], rp: .5, ra: [-10, 40] })), .3], [P(Object.assign({}, RH_STANCE, { t: 242, ll: [-6, -6], rl: [150, 142], rp: 1, ra: [-40, -25], la: [120, 205] })), .55], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [112, -80], rp: .5, ra: [-10, 40] })), .45]] },
+  mid_kick: { n: "Apvalus spyris į liemenį", v: "side", a: "lf", tg: 2, d: "Užtaisyk galinės kojos kelį, pasisuk ant priekinės kojos ir spirk ratu į liemens aukštį. Smūgiuok blauzda, galinė ranka eina žemyn, priekinė saugo veidą.",
+    k: [[P(RH_STANCE), .7], [P(Object.assign({}, RH_STANCE, { t: 198, ll: [4, 4], rl: [100, -80], rp: .5, ra: [-5, 50] })), .3], [P(Object.assign({}, RH_STANCE, { t: 222, ll: [-4, -4], rl: [120, 110], rp: 1, ra: [-30, -20], la: [80, 190] })), .5], [P(Object.assign({}, RH_STANCE, { t: 198, ll: [4, 4], rl: [100, -80], rp: .5, ra: [-5, 50] })), .45]] },
+  low_kick: { n: "Žemas spyris (low kick)", v: "side", a: "lf", tg: 2, d: "Pasisuk ant priekinės kojos ir spirk galine koja ratu į šlaunies aukštį. Smūgiuok blauzdos viduriu, kelis truputį sulenktas, rankos saugo galvą.",
+    k: [[P(RH_STANCE), .7], [P(Object.assign({}, RH_STANCE, { t: 192, ll: [6, 6], rl: [70, -75], rp: .5 })), .3], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [2, 2], rl: [80, 62], rp: 1, ra: [-20, 0] })), .45], [P(Object.assign({}, RH_STANCE, { t: 192, ll: [6, 6], rl: [70, -75], rp: .5 })), .45]] },
+  kick_chamber: { n: "Kelio užtaisymas su pasisukimu", v: "side", a: "lf", d: "Kovinėje stovėsenoje lėtai kelk galinės kojos kelį aukštyn į šoną ir pasisuk ant priekinės kojos pirštų. Palaikyk 2 s ir grįžk. Moko apvalaus spyrio judesio ir stiprina klubą.",
+    k: [[P(RH_STANCE), 1], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [115, -80], rp: .5, ra: [-10, 40] })), 1.2], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [115, -80], rp: .5, ra: [-10, 40] })), 1.5]] },
   front_split_easy: { n: "Špagatas su atrama", v: "side", d: "Kojos plačiai į priekį ir atgal, rankomis remkis į knygas ar kėdes šonuose. Nusileisk tik tiek, kiek patogu, ir laikyk. Dubuo žiūri tiesiai.",
     k: [[P({ t: 172, rl: [42, 42], ll: [-42, -42], la: [20, 15], ra: [20, 15] }), 2.5], [P({ t: 168, rl: [56, 56], ll: [-56, -56], la: [28, 20], ra: [28, 20] }), 3], [P({ t: 168, rl: [56, 56], ll: [-56, -56], la: [28, 20], ra: [28, 20] }), 2]] },
   front_split_fold: { n: "Špagatas su pasilenkimu", v: "side", d: "Iš pilno ar beveik pilno špagato lenkis pirmyn virš priekinės kojos, nugara tiesi. Rankos slenka pirmyn grindimis.",
@@ -485,97 +511,105 @@ function loop(now) {
 }
 requestAnimationFrame(loop);
 
-/* ---------- Nustatymai ir saugojimas ---------- */
-const KEY = "spagatas.v1";
-let store = { done: {}, log: [], lvl: null, assess: null, settings: { sound: true, vib: true, level: 1 } };
+/* ---------- Saugojimas ---------- */
+const KEY = "spagatas.v2";
+const DEF_SET = { sound: true, vib: true, level: 1 };
+let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET) };
 try {
   const s = JSON.parse(localStorage.getItem(KEY));
-  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({ sound: true, vib: true, level: 1 }, s.settings || {}) };
+  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}) };
+  else { const o = JSON.parse(localStorage.getItem("spagatas.v1")); if (o) { store.lvl = o.lvl || null; store.assess = o.assess || null; store.settings = Object.assign({}, DEF_SET, o.settings || {}); } }
 } catch (e) {}
-/* ---------- Programa (28 dienos, pagal lankstumo lygį) ---------- */
-const WEEKS = ["Pagrindai", "Gilinimas", "Jėga lankstume", "Špagatas ir spyris"];
-const TYPES = {
-  A: { s: "Išil.", n: "Išilginis špagatas" },
-  B: { s: "Skers.", n: "Skersinis špagatas ir klubai" },
-  C: { s: "Spyr.", n: "Spyriai ir aktyvus lankstumas" },
-  L: { s: "Leng.", n: "Lengva diena" },
-  R: { s: "Poils.", n: "Poilsis" },
-  T: { s: "Test.", n: "Baigiamasis testas" },
-};
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+
+/* ---------- Lygiai ir kryptys ---------- */
 const LV = {
-  beg: { n: "Pradedantysis", short: "Pradedantysis", H: [20, 25, 30, 40], RP: [6, 8, 10, 12], pat: ["A", "B", "L", "C", "A", "L", "R"],
-    d: "Lengvesni pratimai su atrama, trumpesnis laikymas ir daugiau poilsio. Pilnas špagatas ir spyris į galvą atsiranda tik paskutinę savaitę." },
-  mid: { n: "Vidutinis", short: "Vidutinis", H: [30, 40, 50, 60], RP: [8, 10, 12, 14], pat: ["A", "B", "C", "A", "B", "L", "R"],
-    d: "Subalansuota programa: špagatų progresija ir spyriai nuo pirmos savaitės, laikymas ilgėja nuo 30 iki 60 s." },
-  adv: { n: "Pažengęs", short: "Pažengęs", H: [45, 60, 75, 90], RP: [10, 12, 14, 16], pat: ["A", "B", "C", "A", "B", "C", "L"],
-    d: "Ilgas laikymas iki 90 s, gilesni špagatai su pasilenkimu ir daugiau aukštų spyrių. Be pilnų poilsio dienų." },
+  beg: { n: "Pradedantysis", H: [20, 25, 30, 40], RP: [6, 8, 10, 12],
+    d: "Lengvesni pratimai su atrama ir trumpesnis laikymas. Pilni špagatai ir spyris į galvą atsiranda tik paskutiniame etape." },
+  mid: { n: "Vidutinis", H: [30, 40, 50, 60], RP: [8, 10, 12, 14],
+    d: "Subalansuota programa: pilni špagatai ir visi spyriai nuo pradžių, laikymas ilgėja nuo 30 iki 60 s." },
+  adv: { n: "Pažengęs", H: [45, 60, 75, 90], RP: [10, 12, 14, 16],
+    d: "Ilgas laikymas iki 90 s, špagatai su pasilenkimu ir daugiau aukštų spyrių." },
 };
-function buildDay(n, lvl) {
-  const L = LV[lvl], w = Math.floor((n - 1) / 7);
-  const type = n === 28 ? "T" : L.pat[(n - 1) % 7];
-  const H = L.H[w], RP = L.RP[w];
+const SESS = 16;
+const STAGES = ["Pagrindai", "Gilinimas", "Jėga lankstume", "Tikslas"];
+const TRACKS = {
+  split: { n: "Špagatas", sub: "Skersinis: kojos į šonus", fig: "middle_split", figBeg: "middle_split_easy" },
+  rope: { n: "Virvutė", sub: "Išilginis: viena koja priekyje, kita gale", fig: "front_split", figBeg: "front_split_easy" },
+  kick: { n: "Spyris", sub: "Kikbokso apvalus spyris į galvą", fig: "high_kick", figBeg: "mid_kick" },
+};
+const TRACK_IDS = Object.keys(TRACKS);
+function buildSession(track, n, lvl) {
+  const L = LV[lvl], st = Math.floor((n - 1) / 4), k = (n - 1) % 4, test = n === SESS;
+  const beg = lvl === "beg", adv = lvl === "adv";
+  const H = L.H[st] + (k === 3 ? -5 : k * 5), RP = L.RP[st];
   const hold = (id, v, sides = true) => ({ id, type: "hold", v, sides });
   const reps = (id, v, sides = true) => ({ id, type: "reps", v, sides });
   const time = (id, v) => ({ id, type: "time", v, sides: false });
-  const sw = { beg: 8, mid: 10, adv: 12 }[lvl] + 2 * w;
-  const warm = [time("warm_jog", 60), reps("squat", lvl === "beg" ? 8 : 10, false), reps("swing_front", sw), reps("swing_side", sw)];
+  const sw = (beg ? 8 : adv ? 12 : 10) + 2 * st;
+  let warm = [time("warm_jog", 60), reps("squat", beg ? 8 : 10, false), reps("swing_front", sw), reps("swing_side", sw)];
   let main = [];
-  if (lvl === "beg") {
-    if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold(w < 2 ? "lying_ham_easy" : "lying_ham", H), hold("seated_fold", H, false), hold(w < 3 ? "front_split_easy" : "front_split", H)];
-    if (type === "B") main = [hold("butterfly", H, false), reps("cossack", Math.max(4, RP - 2)), hold("straddle_side", H), hold("quad_stretch", H), hold(w < 3 ? "middle_split_easy" : "middle_split", H + 10, false)];
-    if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP)].concat(w >= 1 ? [reps("front_kick", RP)] : [], w >= 2 ? [reps("side_kick", RP - 2)] : [], w >= 3 ? [reps("high_kick", 4)] : [], [hold("front_split_easy", H)]);
-    if (type === "T") main = [hold("front_split", 30), hold("middle_split", 30, false), reps("high_kick", 3)];
-  } else if (lvl === "mid") {
-    if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold("lying_ham", H), hold("pigeon", H), hold("front_split", H), hold("seated_fold", H, false)];
-    if (type === "B") main = [hold("butterfly", H, false), reps("cossack", RP), hold("straddle_side", H), hold("quad_stretch", H), hold("middle_split", H + 15, false), hold("middle_split", H + 15, false)];
-    if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP), reps("front_kick", RP), reps("side_kick", RP), reps("high_kick", Math.max(5, RP - 4)), hold("front_split", H - 10), hold("middle_split", H, false)];
-    if (type === "T") main = [hold("front_split", 60), hold("middle_split", 60, false), reps("high_kick", 5)];
+  if (track === "split") {
+    const ms = beg && st < 3 ? "middle_split_easy" : "middle_split";
+    main = [hold("butterfly", H, false), reps("cossack", beg ? Math.max(4, RP - 2) : RP), hold("straddle_side", H), reps("leg_raise_side", RP), hold(ms, H + 10, false)];
+    if (!beg) main.push(hold("middle_split", H + 10, false));
+    if (adv) main.splice(3, 0, hold("butterfly", H, false));
+    if (test) main = [hold("butterfly", 45, false), hold("straddle_side", 30), hold("middle_split", beg ? 30 : adv ? 90 : 60, false)];
+  } else if (track === "rope") {
+    const fs = beg && st < 3 ? "front_split_easy" : "front_split";
+    main = [hold("lunge", H), hold("half_split", H), hold(beg && st < 2 ? "lying_ham_easy" : "lying_ham", H), hold("quad_stretch", H)];
+    if (!beg) main.push(hold("pigeon", H));
+    main.push(hold(fs, H));
+    if (adv) main.push(hold("front_split_fold", H));
+    main.push(hold("seated_fold", H, false));
+    if (test) main = [hold("lunge", 30), hold("half_split", 30), hold("front_split", beg ? 30 : adv ? 90 : 60)];
   } else {
-    if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold("pigeon", H), hold("lying_ham", H), hold("front_split", H), hold("front_split_fold", H), hold("seated_fold", H, false)];
-    if (type === "B") main = [hold("butterfly", H, false), reps("cossack", RP), hold("straddle_side", H), hold("quad_stretch", H), hold("middle_split", H + 15, false), hold("middle_split", H + 15, false)];
-    if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP), reps("front_kick", RP), reps("side_kick", RP), reps("high_kick", RP - 2), hold("front_split", H - 15), hold("middle_split", H, false)];
-    if (type === "T") main = [hold("front_split", 90), hold("front_split_fold", 60), hold("middle_split", 90, false), reps("high_kick", 8)];
+    warm = [time("warm_jog", 60), reps("swing_front", sw), reps("swing_side", sw), hold("butterfly", 30, false)];
+    const lowR = Math.max(5, RP - 2);
+    main = [reps("leg_raise_side", RP), reps("kick_chamber", beg ? 6 : 8), reps("low_kick", lowR)];
+    if (!beg || st >= 1) main.push(reps("mid_kick", lowR));
+    if (!beg || st >= 2) main.push(reps("high_kick", beg ? 4 : adv ? RP : Math.max(5, RP - 4)));
+    if (!beg || st >= 1) main.push(reps("side_kick", Math.max(4, RP - 4)));
+    main.push(hold("pigeon", H), hold(beg ? "middle_split_easy" : "middle_split", H, false));
+    if (test) main = [reps("kick_chamber", 5), reps("mid_kick", 5), reps("high_kick", beg ? 3 : adv ? 10 : 5)];
   }
-  const lt = lvl === "beg" ? 30 : lvl === "mid" ? 45 : 60;
-  if (type === "L") return { n, w, type, sections: [["Lengvas tempimas", [time("warm_jog", 45), hold("fold_stand", lt, false), hold("butterfly", lt + 15, false), hold(lvl === "beg" ? "lying_ham_easy" : "lying_ham", lt), time("relax", 90)]]] };
-  if (type === "R") return { n, w, type, sections: [["Poilsis", [time("relax", 120)]]] };
-  return { n, w, type, sections: [["Apšilimas", warm], ["Pagrindinė dalis", main], ["Pabaiga", [time("relax", 60)]]] };
+  return { track, n, st, test, sections: [["Apšilimas", warm], ["Pagrindinė dalis", main], ["Pabaiga", [time("relax", 60)]]] };
 }
-let DAYS = [];
-const rebuildDays = () => { DAYS = Array.from({ length: 28 }, (_, i) => buildDay(i + 1, store.lvl || "mid")); };
-rebuildDays();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
-const isDone = n => !!store.done[n];
-const nextDay = () => { for (let i = 1; i <= 28; i++) if (!isDone(i)) return i; return 28; };
+let SESSIONS = {};
+const rebuild = () => { const l = store.lvl || "mid"; SESSIONS = {}; for (const t of TRACK_IDS) SESSIONS[t] = Array.from({ length: SESS }, (_, i) => buildSession(t, i + 1, l)); };
+rebuild();
+const sess = (t, n) => SESSIONS[t][n - 1];
+const dkeyOf = (t, n) => t + "-" + n;
+const isDone = (t, n) => !!store.done[dkeyOf(t, n)];
+const doneCount = t => SESSIONS[t].filter(s => isDone(t, s.n)).length;
+const nextSess = t => { for (let i = 1; i <= SESS; i++) if (!isDone(t, i)) return i; return SESS; };
+const trackFig = t => (store.lvl === "beg" ? TRACKS[t].figBeg : store.lvl === "adv" && t === "rope" ? "front_split_fold" : TRACKS[t].fig);
+
 const LEVELS = [[0.75, "Lengviau"], [1, "Įprastai"], [1.25, "Sunkiau"]];
 function eff(it) {
   const m = store.settings.level || 1;
   return it.type === "reps" ? Math.max(3, Math.round(it.v * m)) : Math.max(10, Math.round(it.v * m / 5) * 5);
 }
 const doseText = it => (it.type === "reps" ? eff(it) + " kartų" : eff(it) + " s") + (it.sides ? " / koja" : "");
-function dayMinutes(d) {
-  let s = 0;
-  for (const [, items] of d.sections) for (const it of items) s += (it.sides ? 2 : 1) * (it.type === "reps" ? eff(it) * 3.5 : eff(it) + 5);
-  return Math.max(2, Math.round(s / 60));
+function sessMinutes(s, skipWarm) {
+  let x = 0;
+  for (const [title, items] of s.sections) { if (skipWarm && title === "Apšilimas") continue; for (const it of items) x += (it.sides ? 2 : 1) * (it.type === "reps" ? eff(it) * 3.5 : eff(it) + 5); }
+  return Math.max(2, Math.round(x / 60));
 }
-const dayCount = d => d.sections.reduce((s, [, it]) => s + it.length, 0);
-function mainFig(d) {
-  const beg = store.lvl === "beg" && d.w < 3, adv = store.lvl === "adv";
-  return ({ A: beg ? "front_split_easy" : adv ? "front_split_fold" : "front_split", B: beg ? "middle_split_easy" : "middle_split", C: beg ? "leg_raise_front" : "high_kick", L: "fold_stand", R: "relax", T: "high_kick" })[d.type];
-}
+const sessCount = s => s.sections.reduce((a, [, it]) => a + it.length, 0);
 const dkey = ts => { const d = new Date(ts); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
 function streak() {
-  const set = new Set(Object.values(store.done).map(dkey));
+  const set = new Set(store.log.map(l => dkey(l.ts)));
   let c = 0; const d = new Date();
   if (!set.has(dkey(d))) d.setDate(d.getDate() - 1);
   while (set.has(dkey(d))) { c++; d.setDate(d.getDate() - 1); }
   return c;
 }
 const totalMin = () => store.log.reduce((s, l) => s + (l.min || 0), 0);
-const CATS = [["warm", "Apšilimas", ["warm_jog", "squat", "swing_front", "swing_side", "relax"]],
-  ["front", "Išilginis", ["lunge", "half_split", "front_split_easy", "front_split", "front_split_fold", "lying_ham_easy", "lying_ham", "pigeon", "seated_fold", "fold_stand", "quad_stretch"]],
-  ["mid", "Skersinis", ["butterfly", "straddle_side", "middle_split_easy", "middle_split", "cossack"]],
-  ["kick", "Spyriai", ["leg_raise_front", "leg_raise_side", "front_kick", "side_kick", "high_kick"]]];
+const CATS = [["warm", "Apšilimas", ["warm_jog", "squat", "swing_front", "swing_side", "fold_stand", "relax"]],
+  ["rope", "Virvutė", ["lunge", "half_split", "front_split_easy", "front_split", "front_split_fold", "lying_ham_easy", "lying_ham", "pigeon", "seated_fold", "quad_stretch"]],
+  ["split", "Špagatas", ["butterfly", "straddle_side", "middle_split_easy", "middle_split", "cossack", "leg_raise_side"]],
+  ["kick", "Spyris", ["kick_chamber", "low_kick", "mid_kick", "high_kick", "side_kick", "leg_raise_front", "front_kick"]]];
 const catOf = id => (CATS.find(c => c[2].includes(id)) || CATS[0])[1];
 
 /* ---------- Ikonos ---------- */
@@ -618,14 +652,13 @@ let libCat = "all";
 
 function route() {
   closeSheet();
-  const m = location.hash.match(/^#day-(\d+)$/);
-  if (m && +m[1] >= 1 && +m[1] <= 28) return renderDay(+m[1]);
+  const m = location.hash.match(/^#(split|rope|kick)-(\d+)$/);
+  if (m && +m[2] >= 1 && +m[2] <= SESS) return renderSession(m[1], +m[2]);
   if (location.hash === "#pratimai") return renderLib();
   if (location.hash === "#pazanga") return renderProgress();
   renderHome();
 }
 window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
-
 function shell(view, ...content) {
   app.replaceChildren(h("main", { class: "wrap" }, ...content), ...(shell.extra || []), nav(view));
   shell.extra = null;
@@ -636,85 +669,68 @@ function nav(view) {
     b("home", "", "home", "Šiandien"), b("lib", "pratimai", "grid", "Pratimai"), b("prog", "pazanga", "chart", "Pažanga")));
 }
 function statsRow() {
-  const done = Object.keys(store.done).length, st = streak();
+  const st = streak();
   return h("div", { class: "stats" },
-    h("div", { class: "stat" }, h("b", {}, done + "/28"), h("span", {}, "dienų atlikta")),
+    h("div", { class: "stat" }, h("b", {}, String(store.log.length)), h("span", {}, "treniruočių")),
     h("div", { class: "stat" }, h("b", {}, String(st)), h("span", {}, st === 1 ? "diena iš eilės" : "dienos iš eilės")),
     h("div", { class: "stat" }, h("b", {}, String(totalMin())), h("span", {}, "minučių")));
+}
+function trackCard(t, opts = {}) {
+  const n = nextSess(t), s = sess(t, n), dc = doneCount(t), tr = TRACKS[t];
+  const doneToday = opts.doneNow;
+  return h("article", { class: "tcard" + (doneToday ? " did" : "") },
+    h("button", { class: "tfig", "aria-label": tr.n + ": peržiūrėti treniruotę", on: { click: () => { if (opts.onOpen) opts.onOpen(); go(t + "-" + n); } } }, fbox(trackFig(t), false)),
+    h("div", { class: "tbody" },
+      h("div", {}, h("h2", {}, tr.n), h("p", { class: "muted tsub" }, tr.sub)),
+      h("p", { class: "tmeta num" }, doneToday ? "Šiandien atlikta ✓" : (s.test ? "Testas" : "Treniruotė " + n) + " · ~" + sessMinutes(s, opts.skipWarm) + " min"),
+      h("div", { class: "meter" }, h("i", { style: "width:" + (dc / SESS * 100) + "%" })),
+      h("button", { class: "btn tbtn" + (doneToday ? " ghost" : ""), on: { click: () => opts.onStart ? opts.onStart(t, n) : startPlayer(t, n, false) } }, icon("play"), opts.startLabel || "Pradėti")));
 }
 
 /* ---------- Šiandien ---------- */
 function renderHome() {
-  const nd = nextDay(), d = DAYS[nd - 1], done = Object.keys(store.done).length, st = streak();
+  const st = streak();
   const date = new Date().toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" });
-  const weeks = [];
-  for (let w = 0; w < 4; w++) {
-    const days = h("div", { class: "days" });
-    for (let i = w * 7 + 1; i <= w * 7 + 7; i++) {
-      const dd = DAYS[i - 1];
-      days.append(h("button", { class: "day" + (isDone(i) ? " done" : "") + (i === nd && !isDone(i) ? " next" : "") + (dd.type === "R" ? " rest" : ""),
-        "aria-label": "Diena " + i + ", " + TYPES[dd.type].n + (isDone(i) ? ", atlikta" : ""), on: { click: () => go("day-" + i) } },
-        h("b", {}, String(i)), h("span", {}, isDone(i) ? "✓" : TYPES[dd.type].s)));
-    }
-    weeks.push(h("section", { class: "week" },
-      h("div", { class: "sec-h" }, h("h3", {}, (w + 1) + " savaitė · " + WEEKS[w]), h("span", { class: "muted num", style: "font-size:.82rem" }, "laikymas " + Math.round(LV[store.lvl || "mid"].H[w] * store.settings.level / 5) * 5 + " s")), days));
-  }
+  const todayDone = new Set(store.log.filter(l => dkey(l.ts) === dkey(Date.now())).map(l => l.track));
   shell("home",
     h("header", { class: "top" },
       h("div", {}, h("p", { class: "eyebrow" }, date), h("h1", {}, "Špagato kelias"),
         h("button", { class: "lvchip", on: { click: openAssess } }, "Lygis: " + LV[store.lvl || "mid"].n, icon("next"))),
       h("span", { class: "streak", title: "Dienos iš eilės" }, icon("flame"), String(st))),
-    h("section", { class: "today" },
-      fbox(mainFig(d), false),
-      h("div", { class: "body" },
-        h("p", { class: "eyebrow" }, done >= 28 ? "Programa baigta · kartok" : "Diena " + nd + " iš 28 · " + (d.w + 1) + " savaitė"),
-        h("h2", {}, TYPES[d.type].n),
-        h("div", { class: "meta" }, h("span", {}, icon("clock"), "~" + dayMinutes(d) + " min"), h("span", {}, icon("list"), dayCount(d) + " pratimai")),
-        h("div", { class: "row" },
-          h("button", { class: "btn light", on: { click: () => startPlayer(nd) } }, icon("play"), "Pradėti treniruotę"),
-          h("button", { class: "btn sq", "aria-label": "Peržiūrėti pratimus", on: { click: () => go("day-" + nd) } }, icon("list"))))),
+    h("div", { class: "sec-h" }, h("h2", {}, "Ką šiandien darysi?"), h("span", { class: "muted", style: "font-size:.85rem" }, "Pasirink kryptį")),
+    h("div", { class: "tracks" }, TRACK_IDS.map(t => trackCard(t, { doneNow: todayDone.has(t) }))),
     statsRow(),
-    h("div", { class: "sec-h" }, h("h2", {}, "Programa"), h("span", { class: "muted num" }, Math.round(done / 28 * 100) + "%")),
-    h("div", { class: "meter" }, h("i", { style: "width:" + (done / 28 * 100) + "%" })),
-    ...weeks,
     h("div", { class: "note" },
-      h("p", {}, h("b", {}, "Visada apšilk. "), "Tempk šiltus raumenis, niekada šaltus."),
+      h("p", {}, h("b", {}, "Gali derinti. "), "Baigęs vieną kryptį iš karto pasirinksi kitą, o apšilimas antrą kartą bus praleistas."),
       h("p", {}, h("b", {}, "Tempimas, ne skausmas. "), "Jauti tempimą, bet ne aštrų skausmą sąnaryje. Nespyruokliuok laikydamas pozą."),
-      h("p", {}, h("b", {}, "Kvėpuok. "), "Su kiekvienu iškvėpimu atsipalaiduok giliau."),
-      h("p", {}, "Pilnas špagatas dažnai užtrunka keletą mėnesių. Po 28 dienų kartok programą su didesniu sunkumu (nustatymai skiltyje „Pažanga“).")));
+      h("p", {}, h("b", {}, "Spyriai lėtai. "), "Pirmiausia technika ir pusiausvyra, tik tada greitis ir aukštis."),
+      h("p", {}, "Kiekviena kryptis turi 16 treniruočių ir 4 etapus. Darydamas 3–4 kartus per savaitę kiekvieną kryptį, tikslą pasieksi maždaug per mėnesį ar du.")));
 }
 
-/* ---------- Diena ---------- */
-function renderDay(n) {
-  const d = DAYS[n - 1];
+/* ---------- Treniruotės peržiūra ---------- */
+function renderSession(t, n) {
+  const s = sess(t, n), tr = TRACKS[t];
+  const grid = h("div", { class: "sgrid" });
+  for (let i = 1; i <= SESS; i++) grid.append(h("button", { class: "sg" + (isDone(t, i) ? " done" : "") + (i === n ? " cur" : ""), "aria-label": "Treniruotė " + i, on: { click: () => go(t + "-" + i) } }, i === SESS ? "T" : String(i)));
   const secs = [];
-  if (d.type === "R") secs.push(h("p", { class: "muted" }, "Poilsio diena. Raumenys atsigauna ir prisitaiko. Lengvai pasivaikščiok ir atlik atsipalaidavimą."));
-  if (d.type === "T") secs.push(h("p", { class: "muted" }, "Pasitikrink: kiek arti grindų nusileidi per špagatus ir ar pasieki taikinį galvos aukštyje. Palygink su 1 diena."));
-  for (const [title, items] of d.sections) {
-    secs.push(h("section", { class: "list" }, h("p", { class: "eyebrow" }, title),
-      items.map(it => h("button", { class: "ex", on: { click: () => openSheet(it.id, it) } },
-        fbox(it.id, false),
-        h("div", { class: "info" }, h("h3", {}, EX[it.id].n), h("span", { class: "dose" }, doseText(it))),
-        h("span", { class: "chev" }, icon("next"))))));
-  }
+  if (s.test) secs.push(h("p", { class: "muted" }, "Testas: pažiūrėk, kiek pasistūmėjai nuo pradžios. Po jo pasitikrink lankstumo lygį iš naujo skiltyje „Pažanga“."));
+  for (const [title, items] of s.sections) secs.push(h("section", { class: "list" }, h("p", { class: "eyebrow" }, title),
+    items.map(it => h("button", { class: "ex", on: { click: () => openSheet(it.id, it) } },
+      fbox(it.id, false), h("div", { class: "info" }, h("h3", {}, EX[it.id].n), h("span", { class: "dose" }, doseText(it))), h("span", { class: "chev" }, icon("next"))))));
   shell.extra = [h("div", { class: "sticky" }, h("div", { class: "in" },
-    h("button", { class: "btn", on: { click: () => startPlayer(n) } }, icon("play"), "Pradėti"),
-    h("button", { class: "btn ghost", on: { click: () => { if (isDone(n)) delete store.done[n]; else store.done[n] = Date.now(); save(); renderDay(n); } } }, isDone(n) ? "Atžymėti" : "Atlikta")))];
+    h("button", { class: "btn", on: { click: () => startPlayer(t, n, false) } }, icon("play"), "Pradėti"),
+    h("button", { class: "btn ghost", on: { click: () => { const k = dkeyOf(t, n); if (store.done[k]) delete store.done[k]; else store.done[k] = Date.now(); save(); renderSession(t, n); } } }, isDone(t, n) ? "Atžymėti" : "Atlikta")))];
   shell("home",
-    h("div", { class: "top" },
-      h("button", { class: "back", style: "width:auto;padding:0 14px 0 8px;font-weight:700;gap:2px", on: { click: () => go("") } }, icon("prev"), "Šiandien"),
-      h("div", { style: "display:flex;gap:8px" },
-        n > 1 ? h("button", { class: "back", "aria-label": "Ankstesnė diena", on: { click: () => go("day-" + (n - 1)) } }, icon("prev")) : null,
-        n < 28 ? h("button", { class: "back", "aria-label": "Kita diena", on: { click: () => go("day-" + (n + 1)) } }, icon("next")) : null)),
+    h("div", { class: "top" }, h("button", { class: "back", style: "width:auto;padding:0 14px 0 8px;font-weight:700;gap:2px", on: { click: () => go("") } }, icon("prev"), "Šiandien")),
     h("div", { class: "dayhead" },
-      h("p", { class: "eyebrow" }, (d.w + 1) + " savaitė · " + WEEKS[d.w]),
-      h("h1", {}, "Diena " + n),
-      h("p", { class: "muted", style: "font-weight:600" }, TYPES[d.type].n)),
+      h("p", { class: "eyebrow" }, tr.n + " · " + (Math.floor((n - 1) / 4) + 1) + " etapas · " + STAGES[s.st]),
+      h("h1", {}, s.test ? "Testas" : "Treniruotė " + n),
+      h("p", { class: "muted", style: "font-weight:600" }, tr.sub)),
     h("div", { class: "pills" },
-      h("span", { class: "pill" }, icon("clock"), "~" + dayMinutes(d) + " min"),
-      h("span", { class: "pill" }, icon("list"), dayCount(d) + " pratimai"),
-      isDone(n) ? h("span", { class: "pill ok" }, icon("check"), "Atlikta") : null),
-    ...secs);
+      h("span", { class: "pill" }, icon("clock"), "~" + sessMinutes(s) + " min"),
+      h("span", { class: "pill" }, icon("list"), sessCount(s) + " pratimai"),
+      isDone(t, n) ? h("span", { class: "pill ok" }, icon("check"), "Atlikta") : null),
+    grid, ...secs);
 }
 
 /* ---------- Pratimai ---------- */
@@ -731,8 +747,6 @@ function renderLib() {
 
 /* ---------- Pažanga ---------- */
 function renderProgress() {
-  const heat = h("div", { class: "heat" });
-  for (let i = 1; i <= 28; i++) heat.append(h("i", { class: isDone(i) ? "on" : "", title: "Diena " + i }, String(i)));
   const FEEL = { l: "Lengva", g: "Gerai", s: "Sunku" };
   const hist = store.log.slice(-12).reverse();
   const sw = (key, label, sub) => h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, label), h("small", {}, sub)),
@@ -742,17 +756,21 @@ function renderProgress() {
     const b = e.currentTarget;
     if (b.dataset.armed) { store.done = {}; store.log = []; save(); renderProgress(); return; }
     b.dataset.armed = "1"; b.textContent = "Spausk dar kartą: progresas bus ištrintas";
-  } } }, "Pradėti programą iš naujo");
+  } } }, "Pradėti iš naujo");
   shell("prog",
     h("header", {}, h("p", { class: "eyebrow" }, "Tavo rezultatai"), h("h1", {}, "Pažanga")),
     statsRow(),
-    h("section", { class: "panel" }, h("div", { class: "sec-h" }, h("h3", {}, "28 dienos"), h("span", { class: "muted num" }, Object.keys(store.done).length + " atlikta")), heat),
+    TRACK_IDS.map(t => {
+      const heat = h("div", { class: "heat h8" });
+      for (let i = 1; i <= SESS; i++) heat.append(h("i", { class: isDone(t, i) ? "on" : "" }, i === SESS ? "T" : String(i)));
+      return h("section", { class: "panel" }, h("div", { class: "sec-h" }, h("h3", {}, TRACKS[t].n), h("span", { class: "muted num" }, doneCount(t) + " / " + SESS)), heat);
+    }),
     h("section", { class: "panel" }, h("h3", {}, "Istorija"),
       hist.length ? h("div", { class: "hist" }, hist.map(l => h("div", { class: "r" },
-        h("div", {}, h("b", {}, "Diena " + l.n), h("p", { class: "muted", style: "font-size:.82rem" },
-          new Date(l.ts).toLocaleDateString("lt-LT", { month: "short", day: "numeric" }) + " · " + TYPES[DAYS[l.n - 1].type].n + " · " + l.min + " min")),
+        h("div", {}, h("b", {}, TRACKS[l.track].n + " · " + (l.n === SESS ? "testas" : "treniruotė " + l.n)), h("p", { class: "muted", style: "font-size:.82rem" },
+          new Date(l.ts).toLocaleDateString("lt-LT", { month: "short", day: "numeric" }) + " · " + l.min + " min")),
         l.feel ? h("span", { class: "tag " + l.feel }, FEEL[l.feel]) : null)))
-        : h("p", { class: "muted" }, "Čia matysi atliktas treniruotes ir kaip jauteisi. Pradėk nuo šiandienos dienos.")),
+        : h("p", { class: "muted" }, "Čia matysi atliktas treniruotes ir kaip jauteisi.")),
     h("section", { class: "panel" }, h("div", { class: "sec-h" }, h("h3", {}, "Lankstumo lygis"), h("span", { class: "tag l" }, LV[store.lvl || "mid"].n)),
       h("p", { class: "muted", style: "font-size:.9rem" }, LV[store.lvl || "mid"].d),
       store.assess ? h("p", { class: "muted", style: "font-size:.82rem" }, "Testas atliktas " + new Date(store.assess.ts).toLocaleDateString("lt-LT", { month: "long", day: "numeric" }) + ". Pasitikrink kas 4 savaites.") : null,
@@ -765,7 +783,7 @@ function renderProgress() {
       reset));
 }
 
-/* ---------- Pratimo kortelė (bottom sheet) ---------- */
+/* ---------- Pratimo kortelė ---------- */
 let sheetEl = null;
 function closeSheet() { if (sheetEl) { sheetEl.remove(); sheetEl = null; document.removeEventListener("keydown", sheetKey); } }
 const sheetKey = e => { if (e.key === "Escape") closeSheet(); };
@@ -790,9 +808,9 @@ function openSheet(id, it, mirror = false) {
 /* ---------- Lankstumo testas ---------- */
 const QUIZ = [
   { fig: "fold_stand", q: "Pasilenk stovėdamas tiesiomis kojomis. Kur pasieki rankomis?", o: ["Tik kelius", "Blauzdas", "Pirštais grindis", "Delnais grindis"] },
-  { fig: "front_split", q: "Išilginis špagatas: kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
-  { fig: "middle_split", q: "Skersinis špagatas: kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
-  { fig: "high_kick", q: "Kiek aukštai gali iškelti ar spirti tiesia koja?", o: ["Iki juosmens", "Iki krūtinės", "Iki pečių", "Iki galvos"] },
+  { fig: "front_split", q: "Virvutė (išilginis): kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
+  { fig: "middle_split", q: "Špagatas (skersinis): kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
+  { fig: "high_kick", q: "Kiek aukštai gali spirti apvaliu spyriu?", o: ["Iki šlaunies", "Iki liemens", "Iki pečių", "Iki galvos"] },
 ];
 const levelFromScore = sc => sc <= 4 ? "beg" : sc <= 8 ? "mid" : "adv";
 let A_ = null;
@@ -803,10 +821,7 @@ function openAssess() {
   renderAssess();
 }
 function closeAssess() { if (!A_) return; A_.root.remove(); A_ = null; document.body.style.overflow = ""; route(); }
-function setLevel(l, ans) {
-  store.lvl = l; if (ans) store.assess = { ans, ts: Date.now() };
-  save(); rebuildDays();
-}
+function setLevel(l, ans) { store.lvl = l; if (ans) store.assess = { ans, ts: Date.now() }; save(); rebuild(); }
 function renderAssess() {
   const r = A_.root, first = !store.lvl;
   if (A_.i === -1) return r.replaceChildren(assessIntro(first));
@@ -823,27 +838,26 @@ function renderAssess() {
       h("div", { class: "opts" }, q.o.map((t, k) => h("button", { class: "opt", on: { click: () => { A_.ans.push(k); A_.i++; renderAssess(); } } },
         h("span", { class: "dotn" }, String(k + 1)), t)))));
   }
-  const sc = A_.ans.reduce((a, b) => a + b, 0), lvl = levelFromScore(sc);
-  let pick = A_.pick || lvl;
-  const lvBtn = Object.keys(LV).map(k => h("button", { class: "opt" + (pick === k ? " on" : ""), "aria-pressed": String(pick === k), on: { click: () => { A_.pick = k; renderAssess(); } } },
-    h("span", { class: "t2" }, h("b", {}, LV[k].n + (k === lvl ? " · rekomenduojama" : "")), h("small", {}, LV[k].d))));
+  const sc = A_.ans.reduce((a, b) => a + b, 0), lvl = levelFromScore(sc), pick = A_.pick || lvl;
   r.replaceChildren(h("div", { class: "p-in", style: "overflow-y:auto" },
-    h("div", { class: "p-top" }, h("button", { class: "iconbtn", "aria-label": "Pakartoti testą", on: { click: () => { A_ = Object.assign(A_, { i: 0, ans: [], pick: null }); renderAssess(); } } }, icon("prev"))),
+    h("div", { class: "p-top" }, h("button", { class: "iconbtn", "aria-label": "Pakartoti testą", on: { click: () => { Object.assign(A_, { i: 0, ans: [], pick: null }); renderAssess(); } } }, icon("prev"))),
     h("p", { class: "eyebrow" }, "Tavo rezultatas · " + sc + " iš 12 taškų"),
     h("h1", {}, "Lygis: " + LV[lvl].n),
     h("p", { class: "muted" }, "Pagal atsakymus parinkome programą. Jei nori, gali pasirinkti kitą lygį."),
-    h("div", { class: "opts" }, lvBtn),
-    h("button", { class: "btn block", style: "margin-top:auto", on: { click: () => { setLevel(pick, A_.ans); closeAssess(); go(""); } } }, "Pradėti programą")));
+    h("div", { class: "opts" }, Object.keys(LV).map(k => h("button", { class: "opt" + (pick === k ? " on" : ""), "aria-pressed": String(pick === k), on: { click: () => { A_.pick = k; renderAssess(); } } },
+      h("span", { class: "t2" }, h("b", {}, LV[k].n + (k === lvl ? " · rekomenduojama" : "")), h("small", {}, LV[k].d))))),
+    h("button", { class: "btn block", style: "margin-top:auto", on: { click: () => { setLevel(pick, A_.ans); closeAssess(); go(""); } } }, "Pradėti")));
 }
 function assessIntro(first) {
   return h("div", { class: "p-in", style: "overflow-y:auto" },
-    h("div", { class: "p-fig", style: "flex:1 1 45%" }, makeFig("front_split", false)),
+    h("div", { class: "p-fig", style: "flex:1 1 45%" }, makeFig("high_kick", false)),
     h("p", { class: "eyebrow" }, "Sveikas!"),
     h("h1", {}, "Pritaikykime programą tau"),
-    h("p", { class: "muted" }, "Atsakyk į 4 trumpus klausimus apie savo lankstumą. Pagal tai gausi pradedančiojo, vidutinio arba pažengusio programą. Prieš bandydamas pozas, trumpai apšilk."),
+    h("p", { class: "muted" }, "Atsakyk į 4 trumpus klausimus apie savo lankstumą. Pagal tai gausi pradedančiojo, vidutinio arba pažengusio programą špagatui, virvutei ir spyriui. Prieš bandydamas pozas, trumpai apšilk."),
     h("button", { class: "btn block", on: { click: () => { A_.i = 0; renderAssess(); } } }, "Pradėti testą"),
-    h("button", { class: "btn ghost block", on: { click: () => { setLevel("mid"); closeAssess(); } } }, first ? "Praleisti (vidutinis lygis)" : "Uždaryti"));
+    h("button", { class: "btn ghost block", on: { click: () => { setLevel(store.lvl || "mid"); closeAssess(); } } }, first ? "Praleisti (vidutinis lygis)" : "Uždaryti"));
 }
+
 /* ---------- Treniruotės grotuvas ---------- */
 let audio = null, wake = null, P_ = null;
 function beep(freq = 880, dur = .12) {
@@ -863,17 +877,21 @@ async function lockScreen() { try { wake = await navigator.wakeLock.request("scr
 document.addEventListener("visibilitychange", () => { if (P_ && document.visibilityState === "visible") lockScreen(); });
 const RING_C = 2 * Math.PI * 52;
 
-function startPlayer(n) {
+function startPlayer(t, n, skipWarm) {
   closeSheet();
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
-  lockScreen();
+  if (!wake) lockScreen();
   const steps = [];
-  for (const [, items] of DAYS[n - 1].sections) for (const it of items) {
-    const v = eff(it);
-    if (it.sides) { steps.push({ ...it, v, side: "Dešinė koja", mirror: false }); steps.push({ ...it, v, side: "Kairė koja", mirror: true }); }
-    else steps.push({ ...it, v, side: null, mirror: false });
+  for (const [title, items] of sess(t, n).sections) {
+    if (skipWarm && title === "Apšilimas") continue;
+    for (const it of items) {
+      const v = eff(it);
+      if (it.sides) { steps.push({ ...it, v, side: "Dešinė koja", mirror: false }); steps.push({ ...it, v, side: "Kairė koja", mirror: true }); }
+      else steps.push({ ...it, v, side: null, mirror: false });
+    }
   }
-  P_ = { n, steps, i: 0, phase: "prep", left: 0, paused: false, last: performance.now(), start: Date.now(), timer: null,
+  if (P_) { clearInterval(P_.timer); P_.root.remove(); }
+  P_ = { t, n, steps, i: 0, phase: "prep", left: 0, paused: false, last: performance.now(), start: Date.now(), timer: null,
     root: h("div", { class: "player", role: "dialog", "aria-modal": "true", "aria-label": "Treniruotė" }) };
   document.body.append(P_.root);
   document.body.style.overflow = "hidden";
@@ -884,7 +902,7 @@ function closePlayer() {
   if (!P_) return;
   clearInterval(P_.timer); P_.root.remove(); P_ = null;
   document.body.style.overflow = "";
-  try { wake && wake.release(); } catch (e) {}
+  try { wake && wake.release(); } catch (e) {} wake = null;
   route();
 }
 function goStep(i) {
@@ -931,12 +949,11 @@ function renderPlayer(newFig) {
     fig.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
     fig.addEventListener("touchend", e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (dx < -60) goStep(P_.i + 1); else if (dx > 60) goStep(P_.i - 1); });
   }
-  const nxt = P_.steps[P_.i + 1];
-  const reps = s.type === "reps";
+  const nxt = P_.steps[P_.i + 1], reps = s.type === "reps";
   const ringSvg = document.createElementNS(NS, "svg"); ringSvg.setAttribute("viewBox", "0 0 120 120");
   ringSvg.innerHTML = `<circle class="trk" cx="60" cy="60" r="52"/><circle class="val" cx="60" cy="60" r="52" stroke-dasharray="${RING_C.toFixed(1)}" stroke-dashoffset="0"/>`;
   const ring = h("div", { class: "ring" + (reps ? " reps" : P_.phase === "prep" ? " prep" : "") }, ringSvg,
-    h("div", { class: "lbl", "aria-live": "off" }, h("b", {}, reps ? "×" + s.v : "0"), h("small", {}, reps ? "kartų" : P_.phase === "prep" ? "pasiruošk" : s.type === "hold" ? "laikyk" : "judėk")));
+    h("div", { class: "lbl" }, h("b", {}, reps ? "×" + s.v : "0"), h("small", {}, reps ? "kartų" : P_.phase === "prep" ? "pasiruošk" : s.type === "hold" ? "laikyk" : "judėk")));
   const segs = h("div", { class: "segs", "aria-label": "Pratimas " + (P_.i + 1) + " iš " + total });
   for (let k = 0; k < total; k++) segs.append(h("i", { class: k < P_.i ? "d" : k === P_.i ? "c" : "" }));
   const mainBtn = reps
@@ -949,7 +966,7 @@ function renderPlayer(newFig) {
       h("button", { class: "iconbtn", "aria-label": store.settings.sound ? "Išjungti garsą" : "Įjungti garsą", on: { click: () => { store.settings.sound = !store.settings.sound; save(); renderPlayer(false); } } }, icon(store.settings.sound ? "sound" : "mute"))),
     fig,
     h("div", { class: "p-mid" },
-      h("div", { class: "p-name" }, h("p", { class: "eyebrow num" }, (P_.i + 1) + " / " + total), h("h2", {}, ex.n), h("p", { class: "p-desc" }, ex.d)),
+      h("div", { class: "p-name" }, h("p", { class: "eyebrow num" }, TRACKS[P_.t].n + " · " + (P_.i + 1) + " / " + total), h("h2", {}, ex.n), h("p", { class: "p-desc" }, ex.d)),
       ring),
     h("div", { class: "ctrl" },
       h("button", { class: "sm", "aria-label": "Ankstesnis", on: { click: () => goStep(P_.i - 1) } }, icon("prev")),
@@ -960,22 +977,28 @@ function renderPlayer(newFig) {
 }
 function finish() {
   P_.phase = "fin";
-  const n = P_.n, min = Math.max(1, Math.round((Date.now() - P_.start) / 60000));
-  store.done[n] = Date.now();
-  const entry = { n, ts: Date.now(), min, feel: null };
+  const { t, n } = P_, min = Math.max(1, Math.round((Date.now() - P_.start) / 60000));
+  store.done[dkeyOf(t, n)] = Date.now();
+  const entry = { track: t, n, ts: Date.now(), min, feel: null };
   store.log.push(entry); save();
   beep(880, .15); setTimeout(() => beep(1320, .3), 180); buzz([100, 60, 100, 60, 200]);
   const feel = h("div", { class: "feel", role: "group", "aria-label": "Kaip sekėsi" },
     [["l", "Lengva"], ["g", "Gerai"], ["s", "Sunku"]].map(([k, l]) => h("button", { "aria-pressed": "false", on: { click: e => {
       entry.feel = k; save(); feel.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === e.currentTarget)));
     } } }, l)));
-  P_.root.replaceChildren(h("div", { class: "p-in" }, h("div", { class: "fin" },
+  const todayDone = new Set(store.log.filter(l => dkey(l.ts) === dkey(Date.now())).map(l => l.track));
+  const others = TRACK_IDS.filter(x => !todayDone.has(x));
+  P_.root.replaceChildren(h("div", { class: "p-in", style: "overflow-y:auto" }, h("div", { class: "fin" },
     h("div", { class: "badge" }, icon("check")),
-    h("div", {}, h("h1", {}, "Diena " + n + " atlikta"),
-      h("p", { class: "muted", style: "margin-top:6px" }, min + " min · " + P_.steps.length + " pratimai · serija " + streak() + " d.")),
+    h("div", {}, h("h1", {}, TRACKS[t].n + " atlikta!"),
+      h("p", { class: "muted", style: "margin-top:6px" }, (n === SESS ? "Testas" : "Treniruotė " + n) + " · " + min + " min · serija " + streak() + " d.")),
     h("p", { class: "eyebrow" }, "Kaip sekėsi?"), feel,
-    h("p", { class: "muted" }, n < 28 ? "Kitą kartą: diena " + (n + 1) + ", " + TYPES[DAYS[n].type].n.toLowerCase() + "." : "Programa baigta! Pasitikrink lankstumą iš naujo skiltyje „Pažanga“ ir pradėk kitą ratą."),
-    h("button", { class: "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Baigti"))));
+    others.length ? h("div", { class: "nextq" },
+      h("h2", {}, "Ką darysi toliau?"),
+      h("p", { class: "muted" }, "Raumenys jau sušilę, todėl apšilimą praleisime."),
+      h("div", { class: "tracks" }, others.map(x => trackCard(x, { skipWarm: true, startLabel: "Tęsti su " + TRACKS[x].n.toLowerCase(), onStart: (tt, nn) => startPlayer(tt, nn, true), onOpen: () => closePlayer() }))))
+      : h("p", { class: "muted" }, "Šiandien atlikai visas tris kryptis. Puikus darbas!"),
+    h("button", { class: others.length ? "btn ghost block" : "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Baigti šiandien"))));
 }
 
 route();
