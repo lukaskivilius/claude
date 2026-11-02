@@ -301,9 +301,6 @@ function lerpPose(a, b, u) {
 const ease = u => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
 
 /* ---------- Pratimai ---------- */
-const GUARD_S = { la: [25, 160], ra: [15, 168] };
-const GUARD_F = { la: [-18, 172], ra: [18, -172] };
-const RH_STANCE = { t: 182, ll: [14, 10], rl: [-16, -12], la: [25, 160], ra: [15, 168] };
 const HIPS_S = { la: [-30, 60], ra: [-30, 60] };
 const HIPS_F = { la: [-35, 55], ra: [35, -55] };
 
@@ -330,7 +327,7 @@ const EX = {
     k: [[P({ t: 170, rl: [90, 90], ll: [90, 90], la: [100, 100], ra: [100, 100] }), 2.5], [P({ t: 115, rl: [90, 90], ll: [90, 90], la: [85, 85], ra: [85, 85] }), 2.5], [P({ t: 115, rl: [90, 90], ll: [90, 90], la: [85, 85], ra: [85, 85] }), 2]] },
   lying_ham: { n: "Kojos tempimas gulint", v: "side", d: "Gulėk ant nugaros, kita koja ant grindų. Ištiestą koją trauk link savęs rankomis arba diržu. Dubuo prispaustas prie grindų.",
     k: [[P({ t: -90, ll: [90, 90], rl: [150, 150], la: [120, 120], ra: [120, 120] }), 2.5], [P({ t: -90, ll: [90, 90], rl: [178, 178], la: [130, 130], ra: [130, 130] }), 2.5], [P({ t: -90, ll: [90, 90], rl: [178, 178], la: [130, 130], ra: [130, 130] }), 2]] },
-  pigeon: { n: "Balandžio poza", v: "side", d: "Priekinė koja sulenkta prieš tave, galinė ištiesta atgal. Dubuo lygiai, tada lėtai lenkis pirmyn ant dilbių. Atveria klubus spyriams.",
+  pigeon: { n: "Balandžio poza", v: "side", d: "Priekinė koja sulenkta prieš tave, galinė ištiesta atgal. Dubuo lygiai, tada lėtai lenkis pirmyn ant dilbių. Atveria klubus ir padeda skersiniam špagatui.",
     k: [[P({ t: 170, rl: [75, -95], ll: [-88, -88], la: [15, 10], ra: [15, 10] }), 2.5], [P({ t: 110, rl: [75, -95], ll: [-88, -88], la: [20, 90], ra: [20, 90] }), 2.5], [P({ t: 110, rl: [75, -95], ll: [-88, -88], la: [20, 90], ra: [20, 90] }), 2]] },
   butterfly: { n: "Drugelis", v: "front", d: "Sėdėk, pėdos kartu, keliai į šonus. Suimk pėdas, nugara tiesi. Švelniai leisk keliams žemyn.",
     k: [[P({ rl: [100, -70], ll: [-100, 70], la: [8, 8], ra: [-8, -8] }), 1.4], [P({ rl: [82, -70], ll: [-82, 70], la: [8, 8], ra: [-8, -8] }), 1.4]] },
@@ -340,22 +337,10 @@ const EX = {
     k: [[P({ rl: [50, 50], ll: [-50, -50], la: [-90, -90], ra: [90, 90] }), 2.5], [P({ rl: [80, 82], ll: [-80, -82], la: [-25, -15], ra: [25, 15] }), 3], [P({ rl: [80, 82], ll: [-80, -82], la: [-25, -15], ra: [25, 15] }), 2]] },
   cossack: { n: "Kazokiški pritūpimai", v: "front", a: "feet", d: "Plačiai išskėstos kojos. Pritūpk ant vienos kojos, kita lieka tiesi, pirštai į viršų. Lėtai perkelk svorį į kitą pusę.",
     k: [[P({ rl: [36, 36], ll: [-36, -36], la: [-10, 30], ra: [10, -30] }), 1.3], [P({ t: 175, rl: [85, -20], ll: [-59, -59], la: [-10, 40], ra: [10, -40] }), 1.3]] },
-  leg_raise_front: { n: "Kojos kėlimas pirmyn", v: "side", a: "lf", d: "Rankos ant klubų. Tiesią koją lėtai kelk pirmyn kuo aukščiau, palaikyk 2 s viršuje ir lėtai nuleisk. Stiprina koją spyriui.",
+  leg_raise_front: { n: "Kojos kėlimas pirmyn", v: "side", a: "lf", d: "Rankos ant klubų. Tiesią koją lėtai kelk pirmyn kuo aukščiau, palaikyk 2 s viršuje ir lėtai nuleisk. Stiprina koją, kad špagatą valdytum ir aktyviai.",
     k: [[P(HIPS_S), 1.4], [P(Object.assign({ t: 186, rl: [95, 95] }, HIPS_S)), 2], [P(Object.assign({ t: 186, rl: [95, 95] }, HIPS_S)), 1.5]] },
   leg_raise_side: { n: "Kojos kėlimas į šoną", v: "front", a: "lf", d: "Stovėk tiesiai ir lėtai kelk tiesią koją į šoną, liemuo pasvyra šiek tiek į kitą pusę. Palaikyk viršuje, nuleisk lėtai.",
     k: [[P(HIPS_F), 1.4], [P(Object.assign({ t: 200, rl: [70, 70] }, HIPS_F)), 2], [P(Object.assign({ t: 200, rl: [70, 70] }, HIPS_F)), 1.5]] },
-  front_kick: { n: "Tiesus spyris (tipas)", v: "side", a: "lf", d: "Pakelk kelį (užtaisymas), ištiesk koją pirmyn, grįžk į užtaisymą ir pastatyk koją. Rankos saugo galvą.",
-    k: [[P(GUARD_S), .6], [P(Object.assign({ t: 185, rl: [100, -5] }, GUARD_S)), .35], [P(Object.assign({ t: 190, rl: [100, 100] }, GUARD_S)), .45], [P(Object.assign({ t: 185, rl: [100, -5] }, GUARD_S)), .45]] },
-  side_kick: { n: "Šoninis spyris", v: "front", a: "lf", d: "Kelis kyla į šoną, koja tiesiama į šoną, liemuo pasvyra į priešingą pusę. Valdyk judesį nuo pradžios iki galo.",
-    k: [[P(GUARD_F), .6], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .4], [P(Object.assign({ t: 215, rl: [108, 112] }, GUARD_F)), .55], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .45]] },
-  high_kick: { n: "Apvalus spyris į galvą", v: "side", a: "lf", tg: 2, d: "Iš kovinės stovėsenos užtaisyk galinės kojos kelį, pasisuk ant priekinės kojos pirštų ir mesk koją ratu į galvos aukštį. Smūgis keltis ar blauzda, liemuo atsilošia, galinė ranka eina žemyn atsvarai. Grįžk į stovėseną.",
-    k: [[P(RH_STANCE), .7], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [112, -80], rp: .5, ra: [-10, 40] })), .3], [P(Object.assign({}, RH_STANCE, { t: 242, ll: [-6, -6], rl: [150, 142], rp: 1, ra: [-40, -25], la: [120, 205] })), .55], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [112, -80], rp: .5, ra: [-10, 40] })), .45]] },
-  mid_kick: { n: "Apvalus spyris į liemenį", v: "side", a: "lf", tg: 2, d: "Užtaisyk galinės kojos kelį, pasisuk ant priekinės kojos ir spirk ratu į liemens aukštį. Smūgiuok blauzda, galinė ranka eina žemyn, priekinė saugo veidą.",
-    k: [[P(RH_STANCE), .7], [P(Object.assign({}, RH_STANCE, { t: 198, ll: [4, 4], rl: [100, -80], rp: .5, ra: [-5, 50] })), .3], [P(Object.assign({}, RH_STANCE, { t: 222, ll: [-4, -4], rl: [120, 110], rp: 1, ra: [-30, -20], la: [80, 190] })), .5], [P(Object.assign({}, RH_STANCE, { t: 198, ll: [4, 4], rl: [100, -80], rp: .5, ra: [-5, 50] })), .45]] },
-  low_kick: { n: "Žemas spyris (low kick)", v: "side", a: "lf", tg: 2, d: "Pasisuk ant priekinės kojos ir spirk galine koja ratu į šlaunies aukštį. Smūgiuok blauzdos viduriu, kelis truputį sulenktas, rankos saugo galvą.",
-    k: [[P(RH_STANCE), .7], [P(Object.assign({}, RH_STANCE, { t: 192, ll: [6, 6], rl: [70, -75], rp: .5 })), .3], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [2, 2], rl: [80, 62], rp: 1, ra: [-20, 0] })), .45], [P(Object.assign({}, RH_STANCE, { t: 192, ll: [6, 6], rl: [70, -75], rp: .5 })), .45]] },
-  kick_chamber: { n: "Kelio užtaisymas su pasisukimu", v: "side", a: "lf", d: "Kovinėje stovėsenoje lėtai kelk galinės kojos kelį aukštyn į šoną ir pasisuk ant priekinės kojos pirštų. Palaikyk 2 s ir grįžk. Moko apvalaus spyrio judesio ir stiprina klubą.",
-    k: [[P(RH_STANCE), 1], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [115, -80], rp: .5, ra: [-10, 40] })), 1.2], [P(Object.assign({}, RH_STANCE, { t: 205, ll: [4, 4], rl: [115, -80], rp: .5, ra: [-10, 40] })), 1.5]] },
   front_split_easy: { n: "Špagatas su atrama", v: "side", d: "Kojos plačiai į priekį ir atgal, rankomis remkis į knygas ar kėdes šonuose. Nusileisk tik tiek, kiek patogu, ir laikyk. Dubuo žiūri tiesiai.",
     k: [[P({ t: 172, rl: [42, 42], ll: [-42, -42], la: [20, 15], ra: [20, 15] }), 2.5], [P({ t: 168, rl: [56, 56], ll: [-56, -56], la: [28, 20], ra: [28, 20] }), 3], [P({ t: 168, rl: [56, 56], ll: [-56, -56], la: [28, 20], ra: [28, 20] }), 2]] },
   front_split_fold: { n: "Špagatas su pasilenkimu", v: "side", d: "Iš pilno ar beveik pilno špagato lenkis pirmyn virš priekinės kojos, nugara tiesi. Rankos slenka pirmyn grindimis.",
@@ -364,6 +349,12 @@ const EX = {
     k: [[P({ rl: [30, 30], ll: [-30, -30], la: [-14, -4], ra: [14, 4] }), 2.5], [P({ rl: [44, 44], ll: [-44, -44], la: [-10, 0], ra: [10, 0] }), 3], [P({ rl: [44, 44], ll: [-44, -44], la: [-10, 0], ra: [10, 0] }), 2]] },
   lying_ham_easy: { n: "Kojos tempimas sulenktu keliu", v: "side", d: "Gulėk ant nugaros, kitos kojos pėda ant grindų. Suimk šlaunį už kelio ir lėtai tiesk koją į viršų tiek, kiek leidžia. Gali naudoti diržą.",
     k: [[P({ t: -90, ll: [150, 30], rl: [168, 115], la: [128, 128], ra: [128, 128] }), 2.5], [P({ t: -90, ll: [150, 30], rl: [165, 150], la: [125, 125], ra: [125, 125] }), 2.5], [P({ t: -90, ll: [150, 30], rl: [165, 150], la: [125, 125], ra: [125, 125] }), 2]] },
+  lizard: { n: "Driežo poza", v: "side", a: "rf", d: "Iš įtūpsto padėk abi rankas ant grindų priekinės pėdos vidinėje pusėje. Galinis kelis ant žemės. Leisk dubeniui sunkiai kristi žemyn. Tempia klubo lenkiamuosius ir kirkšnį.",
+    k: [[P({ t: 125, rl: [98, 0], ll: [-30, -90], la: [10, 10], ra: [10, 10] }), 2.5], [P({ t: 108, rl: [103, 0], ll: [-40, -90], la: [0, 0], ra: [0, 0] }), 2.5], [P({ t: 108, rl: [103, 0], ll: [-40, -90], la: [0, 0], ra: [0, 0] }), 2]] },
+  couch_stretch: { n: "Sofos tempimas", v: "side", d: "Galinis kelis ant grindų prie sienos ar sofos, galinė pėda remiasi į ją aukštyn. Priekinė pėda priekyje. Lėtai tiesk liemenį ir spausk sėdmenis. Stipriai tempia šlaunies priekį ir klubo lenkiamuosius.",
+    k: [[P({ t: 165, rl: [98, 0], ll: [-20, 175], la: [70, 95], ra: [70, 95] }), 2.5], [P({ t: 182, rl: [102, 0], ll: [-28, 172], la: [55, 85], ra: [55, 85] }), 2.5], [P({ t: 182, rl: [102, 0], ll: [-28, 172], la: [55, 85], ra: [55, 85] }), 2]] },
+  horse_stance: { n: "Raitelio stovėsena", v: "front", a: "feet", d: "Plačiai išskėsk kojas, pėdos truputį į šonus. Leiskis žemyn, kol šlaunys bus beveik lygiagrečios grindims, keliai eina pėdų kryptimi. Stiprina kirkšnis ir ruošia skersiniam špagatui.",
+    k: [[P({ rl: [28, 28], ll: [-28, -28], la: [-10, 30], ra: [10, -30] }), 1.6], [P({ rl: [82, 0], ll: [-82, 0], la: [-10, 30], ra: [10, -30] }), 2], [P({ rl: [82, 0], ll: [-82, 0], la: [-10, 30], ra: [10, -30] }), 1.5]] },
   relax: { n: "Atsipalaidavimas", v: "side", d: "Gulėk ant nugaros, rankos palei kūną. Kvėpuok pilvu: 4 s įkvėpk, 6 s iškvėpk.",
     k: [[P({ t: -90, ll: [90, 90], rl: [90, 90], la: [80, 88], ra: [80, 88] }), 4], [P({ t: -90, ll: [90, 90], rl: [90, 90], la: [70, 82], ra: [70, 82] }), 6]] },
 };
@@ -512,31 +503,30 @@ function loop(now) {
 requestAnimationFrame(loop);
 
 /* ---------- Saugojimas ---------- */
-const KEY = "spagatas.v2";
+const KEY = "spagatas.v3";
 const DEF_SET = { sound: true, vib: true, level: 1 };
 let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET) };
 try {
   const s = JSON.parse(localStorage.getItem(KEY));
   if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}) };
-  else { const o = JSON.parse(localStorage.getItem("spagatas.v1")); if (o) { store.lvl = o.lvl || null; store.assess = o.assess || null; store.settings = Object.assign({}, DEF_SET, o.settings || {}); } }
+  else { const o = JSON.parse(localStorage.getItem("spagatas.v2")) || JSON.parse(localStorage.getItem("spagatas.v1")); if (o) { store.lvl = o.lvl || null; store.assess = o.assess || null; store.settings = Object.assign({}, DEF_SET, o.settings || {}); } }
 } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
 
 /* ---------- Lygiai ir kryptys ---------- */
 const LV = {
   beg: { n: "Pradedantysis", H: [20, 25, 30, 40], RP: [6, 8, 10, 12],
-    d: "Lengvesni pratimai su atrama ir trumpesnis laikymas. Pilni špagatai ir spyris į galvą atsiranda tik paskutiniame etape." },
+    d: "Lengvesni pratimai su atrama ir trumpesnis laikymas. Pilni špagatai atsiranda tik paskutiniame etape." },
   mid: { n: "Vidutinis", H: [30, 40, 50, 60], RP: [8, 10, 12, 14],
-    d: "Subalansuota programa: pilni špagatai ir visi spyriai nuo pradžių, laikymas ilgėja nuo 30 iki 60 s." },
+    d: "Subalansuota programa: pilni špagatai nuo pradžių, laikymas ilgėja nuo 30 iki 60 s." },
   adv: { n: "Pažengęs", H: [45, 60, 75, 90], RP: [10, 12, 14, 16],
-    d: "Ilgas laikymas iki 90 s, špagatai su pasilenkimu ir daugiau aukštų spyrių." },
+    d: "Ilgas laikymas iki 90 s, špagatai su pasilenkimu ir daugiau aktyvių pratimų." },
 };
 const SESS = 16;
 const STAGES = ["Pagrindai", "Gilinimas", "Jėga lankstume", "Tikslas"];
 const TRACKS = {
-  split: { n: "Špagatas", sub: "Skersinis: kojos į šonus", fig: "middle_split", figBeg: "middle_split_easy" },
-  rope: { n: "Virvutė", sub: "Išilginis: viena koja priekyje, kita gale", fig: "front_split", figBeg: "front_split_easy" },
-  kick: { n: "Spyris", sub: "Kikbokso apvalus spyris į galvą", fig: "high_kick", figBeg: "mid_kick" },
+  split: { n: "Špagatas", sub: "Išilginis: viena koja priekyje, kita gale", fig: "front_split", figBeg: "front_split_easy" },
+  rope: { n: "Virvutė", sub: "Skersinis: kojos į šonus", fig: "middle_split", figBeg: "middle_split_easy" },
 };
 const TRACK_IDS = Object.keys(TRACKS);
 function buildSession(track, n, lvl) {
@@ -547,31 +537,28 @@ function buildSession(track, n, lvl) {
   const reps = (id, v, sides = true) => ({ id, type: "reps", v, sides });
   const time = (id, v) => ({ id, type: "time", v, sides: false });
   const sw = (beg ? 8 : adv ? 12 : 10) + 2 * st;
-  let warm = [time("warm_jog", 60), reps("squat", beg ? 8 : 10, false), reps("swing_front", sw), reps("swing_side", sw)];
-  let main = [];
+  let warm, main;
   if (track === "split") {
-    const ms = beg && st < 3 ? "middle_split_easy" : "middle_split";
-    main = [hold("butterfly", H, false), reps("cossack", beg ? Math.max(4, RP - 2) : RP), hold("straddle_side", H), reps("leg_raise_side", RP), hold(ms, H + 10, false)];
-    if (!beg) main.push(hold("middle_split", H + 10, false));
-    if (adv) main.splice(3, 0, hold("butterfly", H, false));
-    if (test) main = [hold("butterfly", 45, false), hold("straddle_side", 30), hold("middle_split", beg ? 30 : adv ? 90 : 60, false)];
-  } else if (track === "rope") {
+    /* Išilginis špagatas: klubo lenkiamieji (galinė koja) + šlaunies užpakalis (priekinė koja) */
+    warm = [time("warm_jog", 60), reps("swing_front", sw), reps("squat", beg ? 8 : 10, false)];
     const fs = beg && st < 3 ? "front_split_easy" : "front_split";
-    main = [hold("lunge", H), hold("half_split", H), hold(beg && st < 2 ? "lying_ham_easy" : "lying_ham", H), hold("quad_stretch", H)];
-    if (!beg) main.push(hold("pigeon", H));
+    main = [hold("lunge", H), hold("half_split", H), hold(beg && st < 2 ? "lying_ham_easy" : "lying_ham", H), hold("lizard", H)];
+    if (!beg || st >= 1) main.push(hold("couch_stretch", H));
+    else main.push(hold("quad_stretch", H));
     main.push(hold(fs, H));
     if (adv) main.push(hold("front_split_fold", H));
-    main.push(hold("seated_fold", H, false));
+    main.push(hold("seated_fold", H, false), reps("leg_raise_front", RP));
     if (test) main = [hold("lunge", 30), hold("half_split", 30), hold("front_split", beg ? 30 : adv ? 90 : 60)];
   } else {
-    warm = [time("warm_jog", 60), reps("swing_front", sw), reps("swing_side", sw), hold("butterfly", 30, false)];
-    const lowR = Math.max(5, RP - 2);
-    main = [reps("leg_raise_side", RP), reps("kick_chamber", beg ? 6 : 8), reps("low_kick", lowR)];
-    if (!beg || st >= 1) main.push(reps("mid_kick", lowR));
-    if (!beg || st >= 2) main.push(reps("high_kick", beg ? 4 : adv ? RP : Math.max(5, RP - 4)));
-    if (!beg || st >= 1) main.push(reps("side_kick", Math.max(4, RP - 4)));
-    main.push(hold("pigeon", H), hold(beg ? "middle_split_easy" : "middle_split", H, false));
-    if (test) main = [reps("kick_chamber", 5), reps("mid_kick", 5), reps("high_kick", beg ? 3 : adv ? 10 : 5)];
+    /* Skersinis špagatas (virvutė): pritraukiamieji (vidinė šlaunis) + klubų atvėrimas */
+    warm = [time("warm_jog", 60), reps("swing_side", sw), reps("squat", beg ? 8 : 10, false)];
+    const ms = beg && st < 3 ? "middle_split_easy" : "middle_split";
+    main = [hold("butterfly", H, false), hold("horse_stance", beg ? Math.max(15, H - 10) : H, false), reps("cossack", beg ? Math.max(4, RP - 2) : RP), hold("straddle_side", H)];
+    if (!beg) main.push(hold("pigeon", H));
+    main.push(hold(ms, H + 10, false));
+    if (!beg) main.push(hold("middle_split", H + 10, false));
+    main.push(reps("leg_raise_side", RP));
+    if (test) main = [hold("butterfly", 45, false), hold("horse_stance", 30, false), hold("middle_split", beg ? 30 : adv ? 90 : 60, false)];
   }
   return { track, n, st, test, sections: [["Apšilimas", warm], ["Pagrindinė dalis", main], ["Pabaiga", [time("relax", 60)]]] };
 }
@@ -583,7 +570,7 @@ const dkeyOf = (t, n) => t + "-" + n;
 const isDone = (t, n) => !!store.done[dkeyOf(t, n)];
 const doneCount = t => SESSIONS[t].filter(s => isDone(t, s.n)).length;
 const nextSess = t => { for (let i = 1; i <= SESS; i++) if (!isDone(t, i)) return i; return SESS; };
-const trackFig = t => (store.lvl === "beg" ? TRACKS[t].figBeg : store.lvl === "adv" && t === "rope" ? "front_split_fold" : TRACKS[t].fig);
+const trackFig = t => (store.lvl === "beg" ? TRACKS[t].figBeg : store.lvl === "adv" && t === "split" ? "front_split_fold" : TRACKS[t].fig);
 
 const LEVELS = [[0.75, "Lengviau"], [1, "Įprastai"], [1.25, "Sunkiau"]];
 function eff(it) {
@@ -607,9 +594,8 @@ function streak() {
 }
 const totalMin = () => store.log.reduce((s, l) => s + (l.min || 0), 0);
 const CATS = [["warm", "Apšilimas", ["warm_jog", "squat", "swing_front", "swing_side", "fold_stand", "relax"]],
-  ["rope", "Virvutė", ["lunge", "half_split", "front_split_easy", "front_split", "front_split_fold", "lying_ham_easy", "lying_ham", "pigeon", "seated_fold", "quad_stretch"]],
-  ["split", "Špagatas", ["butterfly", "straddle_side", "middle_split_easy", "middle_split", "cossack", "leg_raise_side"]],
-  ["kick", "Spyris", ["kick_chamber", "low_kick", "mid_kick", "high_kick", "side_kick", "leg_raise_front", "front_kick"]]];
+  ["split", "Špagatas", ["lunge", "half_split", "lizard", "couch_stretch", "quad_stretch", "lying_ham_easy", "lying_ham", "front_split_easy", "front_split", "front_split_fold", "seated_fold", "leg_raise_front"]],
+  ["rope", "Virvutė", ["butterfly", "horse_stance", "cossack", "straddle_side", "pigeon", "middle_split_easy", "middle_split", "leg_raise_side"]]];
 const catOf = id => (CATS.find(c => c[2].includes(id)) || CATS[0])[1];
 
 /* ---------- Ikonos ---------- */
@@ -652,7 +638,7 @@ let libCat = "all";
 
 function route() {
   closeSheet();
-  const m = location.hash.match(/^#(split|rope|kick)-(\d+)$/);
+  const m = location.hash.match(/^#(split|rope)-(\d+)$/);
   if (m && +m[2] >= 1 && +m[2] <= SESS) return renderSession(m[1], +m[2]);
   if (location.hash === "#pratimai") return renderLib();
   if (location.hash === "#pazanga") return renderProgress();
@@ -703,8 +689,7 @@ function renderHome() {
     h("div", { class: "note" },
       h("p", {}, h("b", {}, "Gali derinti. "), "Baigęs vieną kryptį iš karto pasirinksi kitą, o apšilimas antrą kartą bus praleistas."),
       h("p", {}, h("b", {}, "Tempimas, ne skausmas. "), "Jauti tempimą, bet ne aštrų skausmą sąnaryje. Nespyruokliuok laikydamas pozą."),
-      h("p", {}, h("b", {}, "Spyriai lėtai. "), "Pirmiausia technika ir pusiausvyra, tik tada greitis ir aukštis."),
-      h("p", {}, "Kiekviena kryptis turi 16 treniruočių ir 4 etapus. Darydamas 3–4 kartus per savaitę kiekvieną kryptį, tikslą pasieksi maždaug per mėnesį ar du.")));
+      h("p", {}, "Kiekviena kryptis turi 16 treniruočių ir 4 etapus. Daryk 3–5 kartus per savaitę ir visada sušilęs.")));
 }
 
 /* ---------- Treniruotės peržiūra ---------- */
@@ -808,9 +793,9 @@ function openSheet(id, it, mirror = false) {
 /* ---------- Lankstumo testas ---------- */
 const QUIZ = [
   { fig: "fold_stand", q: "Pasilenk stovėdamas tiesiomis kojomis. Kur pasieki rankomis?", o: ["Tik kelius", "Blauzdas", "Pirštais grindis", "Delnais grindis"] },
-  { fig: "front_split", q: "Virvutė (išilginis): kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
-  { fig: "middle_split", q: "Špagatas (skersinis): kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
-  { fig: "high_kick", q: "Kiek aukštai gali spirti apvaliu spyriu?", o: ["Iki šlaunies", "Iki liemens", "Iki pečių", "Iki galvos"] },
+  { fig: "front_split", q: "Špagatas (išilginis): kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
+  { fig: "middle_split", q: "Virvutė (skersinis): kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
+  { fig: "butterfly", q: "Drugelis: kiek tavo keliai nuo grindų?", o: ["Daugiau nei 20 cm", "10–20 cm", "Mažiau nei 10 cm", "Liečia grindis"] },
 ];
 const levelFromScore = sc => sc <= 4 ? "beg" : sc <= 8 ? "mid" : "adv";
 let A_ = null;
@@ -850,10 +835,10 @@ function renderAssess() {
 }
 function assessIntro(first) {
   return h("div", { class: "p-in", style: "overflow-y:auto" },
-    h("div", { class: "p-fig", style: "flex:1 1 45%" }, makeFig("high_kick", false)),
+    h("div", { class: "p-fig", style: "flex:1 1 45%" }, makeFig("front_split", false)),
     h("p", { class: "eyebrow" }, "Sveikas!"),
     h("h1", {}, "Pritaikykime programą tau"),
-    h("p", { class: "muted" }, "Atsakyk į 4 trumpus klausimus apie savo lankstumą. Pagal tai gausi pradedančiojo, vidutinio arba pažengusio programą špagatui, virvutei ir spyriui. Prieš bandydamas pozas, trumpai apšilk."),
+    h("p", { class: "muted" }, "Atsakyk į 4 trumpus klausimus apie savo lankstumą. Pagal tai gausi pradedančiojo, vidutinio arba pažengusio programą špagatui ir virvutei. Prieš bandydamas pozas, trumpai apšilk."),
     h("button", { class: "btn block", on: { click: () => { A_.i = 0; renderAssess(); } } }, "Pradėti testą"),
     h("button", { class: "btn ghost block", on: { click: () => { setLevel(store.lvl || "mid"); closeAssess(); } } }, first ? "Praleisti (vidutinis lygis)" : "Uždaryti"));
 }
@@ -997,7 +982,7 @@ function finish() {
       h("h2", {}, "Ką darysi toliau?"),
       h("p", { class: "muted" }, "Raumenys jau sušilę, todėl apšilimą praleisime."),
       h("div", { class: "tracks" }, others.map(x => trackCard(x, { skipWarm: true, startLabel: "Tęsti su " + TRACKS[x].n.toLowerCase(), onStart: (tt, nn) => startPlayer(tt, nn, true), onOpen: () => closePlayer() }))))
-      : h("p", { class: "muted" }, "Šiandien atlikai visas tris kryptis. Puikus darbas!"),
+      : h("p", { class: "muted" }, "Šiandien atlikai abi kryptis. Puikus darbas!"),
     h("button", { class: others.length ? "btn ghost block" : "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Baigti šiandien"))));
 }
 
