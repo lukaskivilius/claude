@@ -279,8 +279,9 @@ function joints(p, front, mirror) {
   const hipR = [hw, 0], hipL = [-hw, 0];
   const eR = add(shR, p.ra[0], LEN.ua), hR = add(eR, p.ra[1], LEN.fa);
   const eL = add(shL, p.la[0], LEN.ua), hL = add(eL, p.la[1], LEN.fa);
-  const kR = add(hipR, p.rl[0], LEN.th), fR = add(kR, p.rl[1], LEN.sh);
-  const kL = add(hipL, p.ll[0], LEN.th), fL = add(kL, p.ll[1], LEN.sh);
+  const ls = p.ls || 1;
+  const kR = add(hipR, p.rl[0], LEN.th * ls), fR = add(kR, p.rl[1], LEN.sh * ls);
+  const kL = add(hipL, p.ll[0], LEN.th * ls), fL = add(kL, p.ll[1], LEN.sh * ls);
   const tR = add(fR, p.rl[1] + 90 * (1 - (p.rp || 0)), front ? 4 : LEN.foot);
   const tL = add(fL, p.ll[1] + (front ? -90 : 90), front ? 4 : LEN.foot);
   const j = { hip, top, head, shR, shL, hipR, hipL, eR, hR, eL, hL, kR, fR, tR, kL, fL, tL };
@@ -296,7 +297,7 @@ function anchorX(j, a) {
 function lerpPose(a, b, u) {
   const l = (x, y) => x + (y - x) * u;
   return { t: l(a.t, b.t), la: [l(a.la[0], b.la[0]), l(a.la[1], b.la[1])], ra: [l(a.ra[0], b.ra[0]), l(a.ra[1], b.ra[1])],
-    ll: [l(a.ll[0], b.ll[0]), l(a.ll[1], b.ll[1])], rl: [l(a.rl[0], b.rl[0]), l(a.rl[1], b.rl[1])], rp: l(a.rp || 0, b.rp || 0) };
+    ll: [l(a.ll[0], b.ll[0]), l(a.ll[1], b.ll[1])], rl: [l(a.rl[0], b.rl[0]), l(a.rl[1], b.rl[1])], rp: l(a.rp || 0, b.rp || 0), ls: l(a.ls || 1, b.ls || 1) };
 }
 const ease = u => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
 
@@ -331,8 +332,10 @@ const EX = {
     k: [[P({ t: 170, rl: [75, -95], ll: [-88, -88], la: [15, 10], ra: [15, 10] }), 2.5], [P({ t: 110, rl: [75, -95], ll: [-88, -88], la: [20, 90], ra: [20, 90] }), 2.5], [P({ t: 110, rl: [75, -95], ll: [-88, -88], la: [20, 90], ra: [20, 90] }), 2]] },
   butterfly: { n: "Drugelis", v: "front", d: "Sėdėk, pėdos kartu, keliai į šonus. Suimk pėdas, nugara tiesi. Švelniai leisk keliams žemyn.",
     k: [[P({ rl: [100, -70], ll: [-100, 70], la: [8, 8], ra: [-8, -8] }), 1.4], [P({ rl: [82, -70], ll: [-82, 70], la: [8, 8], ra: [-8, -8] }), 1.4]] },
-  straddle_side: { n: "Šoninis tempimas plačiai", v: "front", d: "Sėdėk išskėstomis kojomis. Lenkis į šoną link pėdos, kita ranka per galvą. Tempia šoną ir vidinę šlaunį.",
-    k: [[P({ rl: [92, 92], ll: [-92, -92], la: [-30, -20], ra: [30, 20] }), 2.5], [P({ t: 140, rl: [92, 92], ll: [-92, -92], la: [150, 125], ra: [55, 80] }), 2.5], [P({ t: 140, rl: [92, 92], ll: [-92, -92], la: [150, 125], ra: [55, 80] }), 2]] },
+  straddle_side: { n: "Šoninis tempimas plačiai", v: "front", d: "Sėdėk išskėstomis kojomis tiek plačiai, kiek patogu, pirštai į viršų. Lenkis į šoną link pėdos, kita ranka per galvą. Tempia šoną ir vidinę šlaunį.",
+    k: [[P({ rl: [92, 92], ll: [-92, -92], ls: .66, la: [-30, -20], ra: [30, 20] }), 2.5], [P({ t: 145, rl: [92, 92], ll: [-92, -92], ls: .66, la: [150, 125], ra: [50, 70] }), 2.5], [P({ t: 145, rl: [92, 92], ll: [-92, -92], ls: .66, la: [150, 125], ra: [50, 70] }), 2]] },
+  straddle_side_easy: { n: "Šoninis tempimas sulenktais keliais", v: "front", d: "Sėdėk kojas išskėtęs nedaug, keliai sulenkti, pėdos ant grindų. Vieną ranką padėk ant kelio, kita per galvą lenkis į šoną. Lengvesnis variantas pradedantiesiems.",
+    k: [[P({ rl: [118, 62], ll: [-118, -62], ls: .8, la: [-20, -10], ra: [20, 10] }), 2.5], [P({ t: 158, rl: [118, 62], ll: [-118, -62], ls: .8, la: [160, 140], ra: [40, 60] }), 2.5], [P({ t: 158, rl: [118, 62], ll: [-118, -62], ls: .8, la: [160, 140], ra: [40, 60] }), 2]] },
   middle_split: { n: "Skersinis špagatas", v: "front", d: "Stovėdamas lėtai išskėsk kojas į šonus, pėdos pirmyn. Rankomis remkis į grindis ar knygas. Laikyk ir ramiai kvėpuok.",
     k: [[P({ rl: [50, 50], ll: [-50, -50], la: [-90, -90], ra: [90, 90] }), 2.5], [P({ rl: [80, 82], ll: [-80, -82], la: [-25, -15], ra: [25, 15] }), 3], [P({ rl: [80, 82], ll: [-80, -82], la: [-25, -15], ra: [25, 15] }), 2]] },
   cossack: { n: "Kazokiški pritūpimai", v: "front", a: "feet", d: "Plačiai išskėstos kojos. Pritūpk ant vienos kojos, kita lieka tiesi, pirštai į viršų. Lėtai perkelk svorį į kitą pusę.",
@@ -553,7 +556,7 @@ function buildSession(track, n, lvl) {
     /* Skersinis špagatas (virvutė): pritraukiamieji (vidinė šlaunis) + klubų atvėrimas */
     warm = [time("warm_jog", 60), reps("swing_side", sw), reps("squat", beg ? 8 : 10, false)];
     const ms = beg && st < 3 ? "middle_split_easy" : "middle_split";
-    main = [hold("butterfly", H, false), hold("horse_stance", beg ? Math.max(15, H - 10) : H, false), reps("cossack", beg ? Math.max(4, RP - 2) : RP), hold("straddle_side", H)];
+    main = [hold("butterfly", H, false), hold("horse_stance", beg ? Math.max(15, H - 10) : H, false), reps("cossack", beg ? Math.max(4, RP - 2) : RP), hold(beg && st < 2 ? "straddle_side_easy" : "straddle_side", H)];
     if (!beg) main.push(hold("pigeon", H));
     main.push(hold(ms, H + 10, false));
     if (!beg) main.push(hold("middle_split", H + 10, false));
@@ -595,7 +598,7 @@ function streak() {
 const totalMin = () => store.log.reduce((s, l) => s + (l.min || 0), 0);
 const CATS = [["warm", "Apšilimas", ["warm_jog", "squat", "swing_front", "swing_side", "fold_stand", "relax"]],
   ["split", "Špagatas", ["lunge", "half_split", "lizard", "couch_stretch", "quad_stretch", "lying_ham_easy", "lying_ham", "front_split_easy", "front_split", "front_split_fold", "seated_fold", "leg_raise_front"]],
-  ["rope", "Virvutė", ["butterfly", "horse_stance", "cossack", "straddle_side", "pigeon", "middle_split_easy", "middle_split", "leg_raise_side"]]];
+  ["rope", "Virvutė", ["butterfly", "horse_stance", "cossack", "straddle_side_easy", "straddle_side", "pigeon", "middle_split_easy", "middle_split", "leg_raise_side"]]];
 const catOf = id => (CATS.find(c => c[2].includes(id)) || CATS[0])[1];
 
 /* ---------- Ikonos ---------- */
