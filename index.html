@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Špagato kelias</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#1F4FD1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Špagatas">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column like a training log; day tiles in 7-wide week strips; full-screen player. */
+:root{
+  --bg:#EEF1EF; --surface:#FFFFFF; --ink:#141C19; --muted:#5B6863; --line:#D6DDD9;
+  --accent:#1F4FD1; --accent-ink:#FFFFFF; --far:#A3B0AB; --good:#23885A; --good-soft:#DDF0E6;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1312; --surface:#172020; --ink:#E7EEEB; --muted:#93A29C; --line:#26312F;
+    --accent:#7598FF; --accent-ink:#0A1230; --far:#4A5A56; --good:#4CC48A; --good-soft:#163428;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1312; --surface:#172020; --ink:#E7EEEB; --muted:#93A29C; --line:#26312F;
+  --accent:#7598FF; --accent-ink:#0A1230; --far:#4A5A56; --good:#4CC48A; --good-soft:#163428;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 110px;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:1.9rem;font-weight:800;line-height:1.05}
+h2{font-size:1.25rem;font-weight:800}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);font-size:1.02rem;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.block{width:100%}
+svg.fig{display:block;width:100%;height:auto}
+svg.fig .gnd{stroke:var(--line);stroke-width:3;stroke-linecap:round}
+svg.fig .lim{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+svg.fig .near{stroke:var(--accent)}
+svg.fig .farl{stroke:var(--far)}
+svg.fig .body{stroke:var(--ink)}
+svg.fig .head{fill:var(--surface);stroke:var(--ink);stroke-width:6}
+svg.fig .tgt{fill:none;stroke:var(--good);stroke-width:3;stroke-dasharray:4 4}
+
+/* top */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.goal{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+
+/* hero */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;display:grid;grid-template-columns:1fr 120px;gap:14px;align-items:center}
+.hero .txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.meter>i{display:block;height:100%;background:var(--good);border-radius:99px}
+.hero .btn{margin-top:6px}
+.num{font-variant-numeric:tabular-nums}
+
+/* weeks */
+.week{display:flex;flex-direction:column;gap:10px}
+.week-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.day b{font-family:var(--display);font-size:1.15rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.day span{font-size:.62rem;font-weight:700;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+.day.done{background:var(--good-soft);border-color:var(--good)}
+.day.done span{color:var(--good)}
+.day.next{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.legend{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:.85rem;color:var(--muted)}
+.legend b{color:var(--ink);font-weight:700}
+.note{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:6px}
+
+/* day view */
+.back{background:none;border:0;padding:6px 0;color:var(--muted);font-weight:600;display:inline-flex;align-items:center;gap:6px;align-self:flex-start}
+.list{display:flex;flex-direction:column;gap:10px}
+.sec{margin-top:6px}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:16px;display:grid;grid-template-columns:76px 1fr;gap:12px;padding:8px 12px 8px 8px;align-items:center;text-align:left;width:100%}
+.ex .fbox{background:var(--bg);border-radius:12px}
+.ex .info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.ex .dose{font-weight:700;color:var(--accent);font-size:.9rem;font-variant-numeric:tabular-nums}
+.ex .desc{font-size:.9rem;color:var(--muted);display:none}
+.ex.open .desc{display:block}
+.sticky{position:fixed;left:0;right:0;bottom:0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 70%,transparent);display:flex;justify-content:center;z-index:5}
+.sticky .in{max-width:560px;width:100%;display:flex;gap:10px}
+.sticky .in .btn:first-child{flex:1}
+
+/* tabs */
+.tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px}
+.tabs button{flex:1;border:0;background:none;padding:9px;border-radius:10px;font-weight:700;color:var(--muted)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.lib{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lib .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lib .card .fbox{background:var(--bg);border-radius:12px}
+.lib .card p{font-size:.84rem;color:var(--muted)}
+
+/* player */
+.player{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.p-in{flex:1;max-width:560px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 16px;min-height:0}
+.p-top{display:flex;align-items:center;gap:12px}
+.p-top .meter{flex:1}
+.x{border:0;background:var(--surface);width:40px;height:40px;border-radius:12px;font-size:1.2rem;border:1px solid var(--line)}
+.p-fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:22px;border:1px solid var(--line)}
+.p-fig svg{max-height:100%;width:auto;max-width:100%;height:100%}
+.p-name{display:flex;flex-direction:column;gap:4px}
+.side{display:inline-block;font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink);align-self:flex-start}
+.p-desc{font-size:.92rem;color:var(--muted)}
+.big{font-family:var(--display);font-weight:800;font-size:4.2rem;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.big small{display:block;font-family:var(--body);font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.big.prep{color:var(--muted)}
+.ctrl{display:grid;grid-template-columns:56px 1fr 56px;gap:10px}
+.ctrl .round{border:1px solid var(--line);background:var(--surface);border-radius:14px;font-size:1.3rem}
+.next-up{font-size:.85rem;color:var(--muted);text-align:center}
+.fin{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center}
+.fin .big{color:var(--good)}
+@media (max-height:640px){.big{font-size:3.2rem}.p-desc{display:none}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ---------- Figūrėlės modelis ---------- */
+const RAD = Math.PI / 180;
+const LEN = { torso: 50, neck: 6, head: 9, ua: 24, fa: 22, th: 33, sh: 33, foot: 7 };
+const GROUND = 186;
+const S = { t: 180, la: [0, 0], ra: [0, 0], ll: [0, 0], rl: [0, 0] };
+const P = o => Object.assign({}, S, o);
+
+function joints(p, front, mirror) {
+  const dir = a => [Math.sin(a * RAD), Math.cos(a * RAD)];
+  const add = (o, a, l) => { const v = dir(a); return [o[0] + v[0] * l, o[1] + v[1] * l]; };
+  const hip = [0, 0];
+  const top = add(hip, p.t, LEN.torso);
+  const head = add(top, p.t, LEN.neck + LEN.head);
+  const tv = dir(p.t), perp = [-tv[1], tv[0]];
+  const sw = front ? 11 : 0, hw = front ? 7 : 0;
+  const shR = [top[0] + perp[0] * sw, top[1] + perp[1] * sw];
+  const shL = [top[0] - perp[0] * sw, top[1] - perp[1] * sw];
+  const hipR = [hw, 0], hipL = [-hw, 0];
+  const eR = add(shR, p.ra[0], LEN.ua), hR = add(eR, p.ra[1], LEN.fa);
+  const eL = add(shL, p.la[0], LEN.ua), hL = add(eL, p.la[1], LEN.fa);
+  const kR = add(hipR, p.rl[0], LEN.th), fR = add(kR, p.rl[1], LEN.sh);
+  const kL = add(hipL, p.ll[0], LEN.th), fL = add(kL, p.ll[1], LEN.sh);
+  const tR = front ? fR : add(fR, p.rl[1] + 90, LEN.foot);
+  const tL = front ? fL : add(fL, p.ll[1] + 90, LEN.foot);
+  const j = { hip, top, head, shR, shL, hipR, hipL, eR, hR, eL, hL, kR, fR, tR, kL, fL, tL };
+  if (mirror) for (const k in j) j[k] = [-j[k][0], j[k][1]];
+  return j;
+}
+function maxY(j) { let m = j.head[1] + LEN.head; for (const k in j) if (j[k][1] > m) m = j[k][1]; return m; }
+function anchorX(j, a) {
+  if (!a) return 0;
+  if (a === "feet") return (j.fL[0] + j.fR[0]) / 2;
+  return ({ lf: j.fL, rf: j.fR, lk: j.kL, rk: j.kR, hip: j.hip })[a][0];
+}
+function lerpPose(a, b, u) {
+  const l = (x, y) => x + (y - x) * u;
+  return { t: l(a.t, b.t), la: [l(a.la[0], b.la[0]), l(a.la[1], b.la[1])], ra: [l(a.ra[0], b.ra[0]), l(a.ra[1], b.ra[1])],
+    ll: [l(a.ll[0], b.ll[0]), l(a.ll[1], b.ll[1])], rl: [l(a.rl[0], b.rl[0]), l(a.rl[1], b.rl[1])] };
+}
+const ease = u => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+
+/* ---------- Pratimai ---------- */
+const GUARD_S = { la: [25, 160], ra: [15, 168] };
+const GUARD_F = { la: [-18, 172], ra: [18, -172] };
+const HIPS_S = { la: [-30, 60], ra: [-30, 60] };
+const HIPS_F = { la: [-35, 55], ra: [35, -55] };
+
+const EX = {
+  warm_jog: { n: "Aukšti keliai", v: "side", d: "Bėk vietoje keldamas kelius iki klubų aukščio, rankos dirba kartu. Sušildo raumenis prieš tempimą.",
+    k: [[P({ rl: [80, 0], ra: [-35, 30], la: [40, 140] }), .35], [P({ ll: [80, 0], la: [-35, 30], ra: [40, 140] }), .35]] },
+  squat: { n: "Gilūs pritūpimai", v: "side", a: "feet", d: "Pėdos pečių plotyje, kulnai ant žemės. Leiskis kuo žemiau, nugara tiesi, rankos ištiestos priekyje.",
+    k: [[P({ ra: [90, 90], la: [90, 90] }), .9], [P({ t: 150, rl: [95, -25], ll: [95, -25], ra: [90, 90], la: [90, 90] }), .9]] },
+  swing_front: { n: "Kojos mostai pirmyn", v: "side", a: "lf", d: "Laikykis už sienos ar kėdės. Tiesia koja mojuok pirmyn ir atgal, kaskart truputį aukščiau. Valdyk judesį, nemėtyk kojos per jėgą.",
+    k: [[P({ la: [80, 80], ra: [70, 80] }), .45], [P({ t: 188, rl: [100, 100], la: [80, 80], ra: [70, 80] }), .55], [P({ la: [80, 80], ra: [70, 80] }), .45], [P({ t: 172, rl: [-35, -25], la: [80, 80], ra: [70, 80] }), .5]] },
+  swing_side: { n: "Kojos mostai į šoną", v: "front", a: "lf", d: "Atsiremk rankomis į sieną. Mojuok tiesia koja į šoną ir atgal per priekį. Pėda žiūri pirmyn, liemuo stabilus.",
+    k: [[P({ la: [-90, -90], ra: [90, 90] }), .45], [P({ t: 195, rl: [75, 75], la: [-90, -90], ra: [90, 90] }), .55], [P({ la: [-90, -90], ra: [90, 90] }), .45], [P({ t: 175, rl: [-18, -18], la: [-90, -90], ra: [90, 90] }), .5]] },
+  quad_stretch: { n: "Šlaunies priekio tempimas", v: "side", a: "lf", d: "Stovėdamas suimk pėdą už nugaros ir pritrauk kulną prie sėdmenų. Keliai šalia vienas kito, dubenį stumk pirmyn.",
+    k: [[P({ rl: [-5, -160], ra: [-12, -14], la: [70, 85] }), 2], [P({ rl: [-14, -166], ra: [-16, -20], la: [70, 85] }), 2]] },
+  fold_stand: { n: "Pasilenkimas stovint", v: "side", a: "lf", d: "Lenkis per klubus, ne per nugarą. Kelius gali truputį sulenkti. Galva ir rankos laisvai kabo, kvėpuok ramiai.",
+    k: [[P({ ll: [8, 8], rl: [8, 8] }), 2], [P({ t: 45, ll: [8, 8], rl: [8, 8], la: [15, -80], ra: [15, -80] }), 2.5], [P({ t: 45, ll: [8, 8], rl: [8, 8], la: [15, -80], ra: [15, -80] }), 2.5]] },
+  lunge: { n: "Gilus įtūpstas", v: "side", a: "rf", d: "Galinis kelis ant žemės. Stumk dubenį pirmyn ir žemyn, kol pajusi tempimą galinės kojos klubo priekyje. Rankos aukštyn.",
+    k: [[P({ rl: [98, 0], ll: [-30, -90], la: [178, 178], ra: [172, 172] }), 2], [P({ t: 185, rl: [103, 0], ll: [-40, -90], la: [182, 182], ra: [176, 176] }), 2]] },
+  half_split: { n: "Pusinis špagatas", v: "side", a: "lk", d: "Iš įtūpsto perkelk svorį atgal ir ištiesk priekinę koją, pirštai į save. Lenkis pirmyn tiesia nugara. Tempia šlaunies užpakalį.",
+    k: [[P({ t: 140, rl: [60, 60], ll: [0, -90], la: [60, 100], ra: [60, 100] }), 2], [P({ t: 105, rl: [60, 60], ll: [0, -90], la: [8, 8], ra: [8, 8] }), 2.5], [P({ t: 105, rl: [60, 60], ll: [0, -90], la: [8, 8], ra: [8, 8] }), 2]] },
+  front_split: { n: "Išilginis špagatas", v: "side", d: "Lėtai slink kojomis į priekį ir atgal, rankomis remkis į grindis ar knygas. Dubuo žiūri tiesiai. Sustok ties tempimu, ne skausmu.",
+    k: [[P({ rl: [60, 60], ll: [-60, -60], la: [40, 60], ra: [40, 60] }), 2.5], [P({ rl: [82, 84], ll: [-82, -84], la: [22, 10], ra: [22, 10] }), 3], [P({ rl: [82, 84], ll: [-82, -84], la: [22, 10], ra: [22, 10] }), 2]] },
+  seated_fold: { n: "Pasilenkimas sėdint", v: "side", d: "Sėdėk ištiestomis kojomis, pirštai į save. Tiesia nugara lenkis link pėdų, rankos slenka kojomis.",
+    k: [[P({ t: 170, rl: [90, 90], ll: [90, 90], la: [100, 100], ra: [100, 100] }), 2.5], [P({ t: 115, rl: [90, 90], ll: [90, 90], la: [85, 85], ra: [85, 85] }), 2.5], [P({ t: 115, rl: [90, 90], ll: [90, 90], la: [85, 85], ra: [85, 85] }), 2]] },
+  lying_ham: { n: "Kojos tempimas gulint", v: "side", d: "Gulėk ant nugaros, kita koja ant grindų. Ištiestą koją trauk link savęs rankomis arba diržu. Dubuo prispaustas prie grindų.",
+    k: [[P({ t: -90, ll: [90, 90], rl: [150, 150], la: [120, 120], ra: [120, 120] }), 2.5], [P({ t: -90, ll: [90, 90], rl: [178, 178], la: [130, 130], ra: [130, 130] }), 2.5], [P({ t: -90, ll: [90, 90], rl: [178, 178], la: [130, 130], ra: [130, 130] }), 2]] },
+  pigeon: { n: "Balandžio poza", v: "side", d: "Priekinė koja sulenkta prieš tave, galinė ištiesta atgal. Dubuo lygiai, tada lėtai lenkis pirmyn ant dilbių. Atveria klubus spyriams.",
+    k: [[P({ t: 170, rl: [75, -95], ll: [-88, -88], la: [15, 10], ra: [15, 10] }), 2.5], [P({ t: 110, rl: [75, -95], ll: [-88, -88], la: [20, 90], ra: [20, 90] }), 2.5], [P({ t: 110, rl: [75, -95], ll: [-88, -88], la: [20, 90], ra: [20, 90] }), 2]] },
+  butterfly: { n: "Drugelis", v: "front", d: "Sėdėk, pėdos kartu, keliai į šonus. Suimk pėdas, nugara tiesi. Švelniai leisk keliams žemyn.",
+    k: [[P({ rl: [100, -70], ll: [-100, 70], la: [8, 8], ra: [-8, -8] }), 1.4], [P({ rl: [82, -70], ll: [-82, 70], la: [8, 8], ra: [-8, -8] }), 1.4]] },
+  straddle_side: { n: "Šoninis tempimas plačiai", v: "front", d: "Sėdėk išskėstomis kojomis. Lenkis į šoną link pėdos, kita ranka per galvą. Tempia šoną ir vidinę šlaunį.",
+    k: [[P({ rl: [92, 92], ll: [-92, -92], la: [-30, -20], ra: [30, 20] }), 2.5], [P({ t: 140, rl: [92, 92], ll: [-92, -92], la: [150, 125], ra: [55, 80] }), 2.5], [P({ t: 140, rl: [92, 92], ll: [-92, -92], la: [150, 125], ra: [55, 80] }), 2]] },
+  middle_split: { n: "Skersinis špagatas", v: "front", d: "Stovėdamas lėtai išskėsk kojas į šonus, pėdos pirmyn. Rankomis remkis į grindis ar knygas. Laikyk ir ramiai kvėpuok.",
+    k: [[P({ rl: [50, 50], ll: [-50, -50], la: [-90, -90], ra: [90, 90] }), 2.5], [P({ rl: [80, 82], ll: [-80, -82], la: [-25, -15], ra: [25, 15] }), 3], [P({ rl: [80, 82], ll: [-80, -82], la: [-25, -15], ra: [25, 15] }), 2]] },
+  cossack: { n: "Kazokiški pritūpimai", v: "front", a: "feet", d: "Plačiai išskėstos kojos. Pritūpk ant vienos kojos, kita lieka tiesi, pirštai į viršų. Lėtai perkelk svorį į kitą pusę.",
+    k: [[P({ rl: [36, 36], ll: [-36, -36], la: [-10, 30], ra: [10, -30] }), 1.3], [P({ t: 175, rl: [85, -20], ll: [-59, -59], la: [-10, 40], ra: [10, -40] }), 1.3]] },
+  leg_raise_front: { n: "Kojos kėlimas pirmyn", v: "side", a: "lf", d: "Rankos ant klubų. Tiesią koją lėtai kelk pirmyn kuo aukščiau, palaikyk 2 s viršuje ir lėtai nuleisk. Stiprina koją spyriui.",
+    k: [[P(HIPS_S), 1.4], [P(Object.assign({ t: 186, rl: [95, 95] }, HIPS_S)), 2], [P(Object.assign({ t: 186, rl: [95, 95] }, HIPS_S)), 1.5]] },
+  leg_raise_side: { n: "Kojos kėlimas į šoną", v: "front", a: "lf", d: "Stovėk tiesiai ir lėtai kelk tiesią koją į šoną, liemuo pasvyra šiek tiek į kitą pusę. Palaikyk viršuje, nuleisk lėtai.",
+    k: [[P(HIPS_F), 1.4], [P(Object.assign({ t: 200, rl: [70, 70] }, HIPS_F)), 2], [P(Object.assign({ t: 200, rl: [70, 70] }, HIPS_F)), 1.5]] },
+  front_kick: { n: "Tiesus spyris", v: "side", a: "lf", d: "Pakelk kelį (užtaisymas), ištiesk koją pirmyn, grįžk į užtaisymą ir pastatyk koją. Rankos saugo galvą.",
+    k: [[P(GUARD_S), .6], [P(Object.assign({ t: 185, rl: [100, -5] }, GUARD_S)), .35], [P(Object.assign({ t: 190, rl: [100, 100] }, GUARD_S)), .45], [P(Object.assign({ t: 185, rl: [100, -5] }, GUARD_S)), .45]] },
+  side_kick: { n: "Šoninis spyris", v: "front", a: "lf", d: "Kelis kyla į šoną, koja tiesiama į šoną, liemuo pasvyra į priešingą pusę. Valdyk judesį nuo pradžios iki galo.",
+    k: [[P(GUARD_F), .6], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .4], [P(Object.assign({ t: 215, rl: [108, 112] }, GUARD_F)), .55], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .45]] },
+  high_kick: { n: "Spyris į galvos aukštį", v: "side", a: "lf", tg: 2, d: "Užtaisyk kelį aukštai, pasisuk ant atraminės kojos ir ištiesk koją iki taikinio galvos aukštyje. Lėtai ir tiksliai, ne per jėgą.",
+    k: [[P(GUARD_S), .7], [P(Object.assign({ t: 195, rl: [125, 0] }, GUARD_S)), .45], [P(Object.assign({ t: 222, rl: [143, 145] }, GUARD_S)), .7], [P(Object.assign({ t: 195, rl: [125, 0] }, GUARD_S)), .5]] },
+  relax: { n: "Atsipalaidavimas", v: "side", d: "Gulėk ant nugaros, rankos palei kūną. Kvėpuok pilvu: 4 s įkvėpk, 6 s iškvėpk.",
+    k: [[P({ t: -90, ll: [90, 90], rl: [90, 90], la: [80, 88], ra: [80, 88] }), 4], [P({ t: -90, ll: [90, 90], rl: [90, 90], la: [70, 82], ra: [70, 82] }), 6]] },
+};
+
+/* ---------- Animacija ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const geoCache = new Map();
+function geo(id, mirror) {
+  const key = id + (mirror ? "m" : "");
+  if (geoCache.has(key)) return geoCache.get(key);
+  const ex = EX[id], front = ex.v === "front";
+  let mn = 1e9, mx = -1e9;
+  for (const [p] of ex.k) {
+    const j = joints(p, front, mirror), ax = anchorX(j, ex.a);
+    for (const k in j) { mn = Math.min(mn, j[k][0] - ax); mx = Math.max(mx, j[k][0] - ax); }
+    mn = Math.min(mn, j.head[0] - ax - LEN.head); mx = Math.max(mx, j.head[0] - ax + LEN.head);
+  }
+  let target = null;
+  if (ex.tg != null) {
+    const j = joints(ex.k[ex.tg][0], front, mirror);
+    const dx = 100 - (mn + mx) / 2 - anchorX(j, ex.a), dy = GROUND - maxY(j);
+    target = [j.tR[0] + dx, j.tR[1] + dy];
+  }
+  const g = { shift: 100 - (mn + mx) / 2, front, target, total: ex.k.reduce((s, k) => s + k[1], 0) };
+  geoCache.set(key, g);
+  return g;
+}
+function makeFig(id, mirror, still) {
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 200 200");
+  svg.setAttribute("class", "fig");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", EX[id].n);
+  const mk = (tag, cls) => { const e = document.createElementNS(NS, tag); e.setAttribute("class", cls); svg.appendChild(e); return e; };
+  const gl = mk("line", "gnd"); gl.setAttribute("x1", 8); gl.setAttribute("x2", 192); gl.setAttribute("y1", GROUND + 3.5); gl.setAttribute("y2", GROUND + 3.5);
+  const g = geo(id, mirror);
+  if (g.target) { const c = mk("circle", "tgt"); c.setAttribute("cx", g.target[0]); c.setAttribute("cy", g.target[1]); c.setAttribute("r", 11); }
+  const el = { aL: mk("polyline", "lim farl"), lL: mk("polyline", "lim farl"), tor: mk("polyline", "lim body"),
+    head: mk("circle", "head"), lR: mk("polyline", "lim near"), aR: mk("polyline", "lim near") };
+  el.head.setAttribute("r", LEN.head);
+  const f = { svg, id, mirror, el, g, t0: performance.now(), still };
+  drawFrame(f, still ? (typeof still === "number" ? still : peakTime(id)) : 0);
+  if (!still) figs.add(f);
+  return svg;
+}
+function peakTime(id) { const k = EX[id].k; return k[0][1] + (k.length > 2 ? k[1][1] * .5 : 0) - 0.001; }
+function poseAt(id, sec) {
+  const k = EX[id].k, total = geo(id, false).total;
+  let t = sec % total;
+  for (let i = 0; i < k.length; i++) {
+    if (t <= k[i][1]) return lerpPose(k[i][0], k[(i + 1) % k.length][0], ease(t / k[i][1]));
+    t -= k[i][1];
+  }
+  return k[0][0];
+}
+function drawFrame(f, sec) {
+  const ex = EX[f.id], p = poseAt(f.id, sec), j = joints(p, f.g.front, f.mirror);
+  const dx = f.g.shift - anchorX(j, ex.a), dy = GROUND - maxY(j);
+  const pt = a => (a[0] + dx).toFixed(1) + "," + (a[1] + dy).toFixed(1);
+  const pts = arr => arr.map(pt).join(" ");
+  f.el.aL.setAttribute("points", pts([j.shL, j.eL, j.hL]));
+  f.el.aR.setAttribute("points", pts([j.shR, j.eR, j.hR]));
+  f.el.lL.setAttribute("points", pts([j.hipL, j.kL, j.fL, j.tL]));
+  f.el.lR.setAttribute("points", pts([j.hipR, j.kR, j.fR, j.tR]));
+  f.el.tor.setAttribute("points", f.g.front ? pts([j.hipL, j.hipR, j.hip, j.top, j.shL, j.shR, j.top, j.head]) : pts([j.hip, j.top]));
+  f.el.head.setAttribute("cx", (j.head[0] + dx).toFixed(1));
+  f.el.head.setAttribute("cy", (j.head[1] + dy).toFixed(1));
+}
+const figs = new Set();
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function loop(now) {
+  for (const f of figs) {
+    if (!f.svg.isConnected) { figs.delete(f); continue; }
+    if (!reduced) drawFrame(f, (now - f.t0) / 1000);
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---------- Programa (28 dienos) ---------- */
+const WEEKS = ["Pagrindai", "Gilinimas", "Jėga lankstume", "Špagatas ir spyris"];
+const TYPES = {
+  A: { s: "Išil.", n: "Išilginis špagatas" },
+  B: { s: "Skers.", n: "Skersinis špagatas ir klubai" },
+  C: { s: "Spyr.", n: "Spyriai ir aktyvus lankstumas" },
+  L: { s: "Leng.", n: "Lengva diena" },
+  R: { s: "Poils.", n: "Poilsis" },
+  T: { s: "Test.", n: "Baigiamasis testas" },
+};
+const PATTERN = ["A", "B", "C", "A", "B", "L", "R"];
+function buildDay(n) {
+  const w = Math.floor((n - 1) / 7);
+  const type = n === 28 ? "T" : PATTERN[(n - 1) % 7];
+  const H = [30, 40, 50, 60][w], RP = [8, 10, 12, 14][w];
+  const hold = (id, v, sides = true) => ({ id, type: "hold", v, sides });
+  const reps = (id, v, sides = true) => ({ id, type: "reps", v, sides });
+  const time = (id, v) => ({ id, type: "time", v, sides: false });
+  const warm = [time("warm_jog", 60), reps("squat", 10, false), reps("swing_front", 10 + 2 * w), reps("swing_side", 10 + 2 * w)];
+  let main = [];
+  if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold("lying_ham", H), hold("pigeon", H), hold("front_split", H), hold("seated_fold", H, false)];
+  if (type === "B") main = [hold("butterfly", H, false), reps("cossack", RP), hold("straddle_side", H), hold("quad_stretch", H), hold("middle_split", H + 15, false), hold("middle_split", H + 15, false)];
+  if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP), reps("front_kick", RP), reps("side_kick", RP), reps("high_kick", Math.max(5, RP - 4)), hold("front_split", H - 10), hold("middle_split", H, false)];
+  if (type === "L") return { n, w, type, sections: [["Lengvas tempimas", [time("warm_jog", 45), hold("fold_stand", 45, false), hold("butterfly", 60, false), hold("lying_ham", 45), time("relax", 90)]]] };
+  if (type === "R") return { n, w, type, sections: [["Poilsis", [time("relax", 120)]]] };
+  if (type === "T") main = [hold("front_split", 60), hold("middle_split", 60, false), reps("high_kick", 5)];
+  return { n, w, type, sections: [["Apšilimas", warm], ["Pagrindinė dalis", main], ["Pabaiga", [time("relax", 60)]]] };
+}
+const DAYS = Array.from({ length: 28 }, (_, i) => buildDay(i + 1));
+const doseText = it => (it.type === "reps" ? it.v + " kartų" : it.v + " s") + (it.sides ? " / koja" : "");
+function dayMinutes(d) {
+  let s = 0;
+  for (const [, items] of d.sections) for (const it of items) s += (it.sides ? 2 : 1) * (it.type === "reps" ? it.v * 3.5 : it.v + 5);
+  return Math.max(2, Math.round(s / 60));
+}
+function mainFig(d) { return ({ A: "front_split", B: "middle_split", C: "high_kick", L: "fold_stand", R: "relax", T: "high_kick" })[d.type]; }
+
+/* ---------- Saugojimas ---------- */
+const KEY = "spagatas.v1";
+let store = { done: {} };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.done) store = s; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const isDone = n => !!store.done[n];
+const nextDay = () => { for (let i = 1; i <= 28; i++) if (!isDone(i)) return i; return 28; };
+
+/* ---------- UI ---------- */
+const app = document.getElementById("app");
+const h = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const k in attrs) {
+    if (k === "on") for (const ev in attrs.on) e.addEventListener(ev, attrs.on[ev]);
+    else if (k === "class") e.className = attrs[k];
+    else if (k === "html") e.innerHTML = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c));
+  return e;
+};
+const fbox = (id, mirror, still) => h("div", { class: "fbox" }, makeFig(id, mirror, still));
+let tab = "prog";
+
+function route() {
+  const m = location.hash.match(/^#day-(\d+)$/);
+  if (m && +m[1] >= 1 && +m[1] <= 28) return renderDay(+m[1]);
+  if (location.hash === "#pratimai") tab = "lib";
+  renderHome();
+}
+window.addEventListener("hashchange", route);
+
+function renderHome() {
+  app.replaceChildren();
+  const doneCount = Object.keys(store.done).length;
+  const nd = nextDay(), d = DAYS[nd - 1];
+  const wrap = h("main", { class: "wrap" },
+    h("header", { class: "top" },
+      h("div", {}, h("p", { class: "eyebrow" }, "28 dienų programa"), h("h1", {}, "Špagato kelias")),
+    ),
+    h("div", { class: "goal" }, h("span", { class: "chip" }, "Tikslas: išilginis ir skersinis špagatas"), h("span", { class: "chip" }, "Spyris į galvos aukštį")),
+    h("section", { class: "hero" },
+      h("div", { class: "txt" },
+        h("p", { class: "eyebrow" }, doneCount >= 28 ? "Programa baigta" : "Šiandien"),
+        h("h2", {}, "Diena " + nd + " · " + TYPES[d.type].n),
+        h("p", { class: "muted num" }, "~" + dayMinutes(d) + " min · atlikta " + doneCount + " iš 28"),
+        h("div", { class: "meter" }, h("i", { style: "width:" + (doneCount / 28 * 100) + "%" })),
+        h("button", { class: "btn", on: { click: () => (location.hash = "day-" + nd) } }, "Atidaryti dieną " + nd + " →")),
+      fbox(mainFig(d), false)),
+    h("div", { class: "tabs", role: "group" },
+      h("button", { "aria-pressed": tab === "prog", on: { click: () => { tab = "prog"; renderHome(); } } }, "Programa"),
+      h("button", { "aria-pressed": tab === "lib", on: { click: () => { tab = "lib"; renderHome(); } } }, "Visi pratimai")),
+  );
+  if (tab === "prog") {
+    for (let w = 0; w < 4; w++) {
+      const days = h("div", { class: "days" });
+      for (let i = w * 7 + 1; i <= w * 7 + 7; i++) {
+        const dd = DAYS[i - 1];
+        days.append(h("button", { class: "day" + (isDone(i) ? " done" : "") + (i === nd && !isDone(i) ? " next" : ""), "aria-label": "Diena " + i + ", " + TYPES[dd.type].n + (isDone(i) ? ", atlikta" : ""), on: { click: () => (location.hash = "day-" + i) } },
+          h("b", {}, isDone(i) ? "✓" : String(i)), h("span", {}, TYPES[dd.type].s)));
+      }
+      wrap.append(h("section", { class: "week" },
+        h("div", { class: "week-h" }, h("h3", {}, (w + 1) + " savaitė · " + WEEKS[w]), h("span", { class: "muted num", style: "font-size:.85rem" }, "laikymas " + [30, 40, 50, 60][w] + " s")), days));
+    }
+    wrap.append(h("div", { class: "legend" },
+      h("b", {}, "Išil."), h("span", {}, "išilginis špagatas: įtūpstai, pusinis špagatas, balandis"),
+      h("b", {}, "Skers."), h("span", {}, "skersinis špagatas: drugelis, kazokiški pritūpimai"),
+      h("b", {}, "Spyr."), h("span", {}, "spyriai ir kojų kėlimai, aktyvus lankstumas"),
+      h("b", {}, "Leng."), h("span", {}, "lengvas tempimas, atsigavimas")));
+    wrap.append(h("div", { class: "note" },
+      h("p", {}, h("b", {}, "Visada apšilk. "), "Tempk šiltus raumenis, niekada šaltus."),
+      h("p", {}, h("b", {}, "Tempimas, ne skausmas. "), "Jauti tempimą, bet ne aštrų skausmą sąnaryje. Nespyruokliuok laikydamas pozą."),
+      h("p", {}, h("b", {}, "Kvėpuok. "), "Su kiekvienu iškvėpimu atsipalaiduok giliau."),
+      h("p", {}, "Po 28 dienų pradėk iš naujo arba kartok 4 savaitę. Pilnas špagatas dažnai užtrunka keletą mėnesių, tad svarbiausia reguliarumas.")));
+    if (doneCount) wrap.append(h("button", { class: "btn ghost", on: { click: resetAsk } }, "Pradėti programą iš naujo"));
+  } else {
+    const lib = h("div", { class: "lib" });
+    for (const id in EX) lib.append(h("article", { class: "card" }, fbox(id, false), h("h3", {}, EX[id].n), h("p", {}, EX[id].d)));
+    wrap.append(lib);
+  }
+  app.append(wrap);
+}
+function resetAsk(e) {
+  const b = e.currentTarget;
+  if (b.dataset.armed) { store = { done: {} }; save(); renderHome(); return; }
+  b.dataset.armed = "1"; b.textContent = "Spausk dar kartą, kad ištrintum progresą";
+}
+
+function renderDay(n) {
+  app.replaceChildren();
+  window.scrollTo(0, 0);
+  const d = DAYS[n - 1];
+  const wrap = h("main", { class: "wrap" },
+    h("button", { class: "back", on: { click: () => (location.hash = "") } }, "← Programa"),
+    h("div", {}, h("p", { class: "eyebrow" }, (d.w + 1) + " savaitė · " + WEEKS[d.w]),
+      h("h1", {}, "Diena " + n), h("p", { class: "muted" }, TYPES[d.type].n + " · ~" + dayMinutes(d) + " min" + (isDone(n) ? " · ✓ atlikta" : ""))));
+  if (d.type === "R") wrap.append(h("p", { class: "muted" }, "Poilsio diena. Raumenys atsigauna ir prisitaiko. Jei nori, lengvai pasivaikščiok ir atlik atsipalaidavimą."));
+  if (d.type === "T") wrap.append(h("p", { class: "muted" }, "Pasitikrink: kiek arti grindų nusileidi per špagatus ir ar pasieki taikinį galvos aukštyje. Palygink su 1 diena."));
+  for (const [title, items] of d.sections) {
+    const list = h("div", { class: "list" });
+    for (const it of items) {
+      const row = h("button", { class: "ex", "aria-expanded": "false", on: { click: () => { row.classList.toggle("open"); row.setAttribute("aria-expanded", row.classList.contains("open")); } } },
+        fbox(it.id, false),
+        h("div", { class: "info" }, h("h3", {}, EX[it.id].n), h("span", { class: "dose" }, doseText(it)), h("p", { class: "desc" }, EX[it.id].d)));
+      list.append(row);
+    }
+    wrap.append(h("section", { class: "list sec" }, h("p", { class: "eyebrow" }, title), list));
+  }
+  wrap.append(h("p", { class: "muted", style: "font-size:.85rem" }, "Paliesk pratimą, kad pamatytum instrukciją."));
+  const sticky = h("div", { class: "sticky" }, h("div", { class: "in" },
+    h("button", { class: "btn", on: { click: () => startPlayer(n) } }, "▶ Pradėti"),
+    h("button", { class: "btn ghost", on: { click: () => { if (isDone(n)) delete store.done[n]; else store.done[n] = Date.now(); save(); renderDay(n); } } }, isDone(n) ? "Atžymėti" : "Atlikta ✓")));
+  app.append(wrap, sticky);
+}
+
+/* ---------- Treniruotės grotuvas ---------- */
+let audio = null, wake = null, P_ = null;
+function beep(freq = 880, dur = .12) {
+  try {
+    if (!audio) return;
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = freq; o.type = "sine";
+    g.gain.setValueAtTime(.0001, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(.3, audio.currentTime + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, audio.currentTime + dur);
+    o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime + dur + .02);
+  } catch (e) {}
+}
+const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+async function lockScreen() { try { wake = await navigator.wakeLock.request("screen"); } catch (e) { wake = null; } }
+document.addEventListener("visibilitychange", () => { if (P_ && document.visibilityState === "visible") lockScreen(); });
+
+function startPlayer(n) {
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
+  lockScreen();
+  const steps = [];
+  for (const [, items] of DAYS[n - 1].sections) for (const it of items) {
+    if (it.sides) { steps.push({ ...it, side: "Dešinė koja", mirror: false }); steps.push({ ...it, side: "Kairė koja", mirror: true }); }
+    else steps.push({ ...it, side: null, mirror: false });
+  }
+  P_ = { n, steps, i: 0, phase: "prep", left: 0, paused: false, last: performance.now(), timer: null, root: h("div", { class: "player", role: "dialog", "aria-modal": "true" }) };
+  document.body.append(P_.root);
+  document.body.style.overflow = "hidden";
+  goStep(0);
+  P_.timer = setInterval(tick, 200);
+}
+function closePlayer() {
+  if (!P_) return;
+  clearInterval(P_.timer); P_.root.remove(); P_ = null;
+  document.body.style.overflow = "";
+  try { wake && wake.release(); } catch (e) {}
+  route();
+}
+function goStep(i) {
+  if (i < 0) i = 0;
+  if (i >= P_.steps.length) return finish();
+  P_.i = i;
+  const s = P_.steps[i];
+  P_.phase = s.type === "reps" ? "work" : "prep";
+  P_.left = s.type === "reps" ? 0 : 5;
+  P_.paused = false; P_.last = performance.now(); P_.lastSec = null;
+  renderPlayer(true);
+}
+function tick() {
+  if (!P_ || P_.paused || P_.phase === "fin") return;
+  const s = P_.steps[P_.i]; if (s.type === "reps") return;
+  const now = performance.now(), dt = (now - P_.last) / 1000; P_.last = now;
+  P_.left -= dt;
+  const sec = Math.ceil(P_.left);
+  if (sec !== P_.lastSec) {
+    P_.lastSec = sec;
+    if (sec <= 3 && sec >= 1) beep(660, .09);
+    updateCounter();
+  }
+  if (P_.left <= 0) {
+    if (P_.phase === "prep") { P_.phase = "work"; P_.left = s.v; P_.lastSec = null; beep(990, .25); buzz(150); renderPlayer(false); }
+    else { beep(1180, .35); buzz([120, 80, 120]); goStep(P_.i + 1); }
+  }
+}
+function updateCounter() {
+  const c = P_.root.querySelector(".big"); if (!c) return;
+  const s = P_.steps[P_.i];
+  if (s.type === "reps") return;
+  const v = Math.max(0, Math.ceil(P_.left));
+  c.firstChild.nodeValue = v >= 60 ? Math.floor(v / 60) + ":" + String(v % 60).padStart(2, "0") : String(v);
+}
+function renderPlayer(newFig) {
+  const s = P_.steps[P_.i], ex = EX[s.id], total = P_.steps.length;
+  const r = P_.root;
+  let figHost = r.querySelector(".p-fig");
+  const keepFig = !newFig && figHost;
+  const fig = keepFig ? figHost : h("div", { class: "p-fig" }, makeFig(s.id, s.mirror));
+  const nxt = P_.steps[P_.i + 1];
+  let counter;
+  if (s.type === "reps") counter = h("div", { class: "big" }, "× " + s.v, h("small", {}, "kartų" + (s.side ? " šia koja" : "")));
+  else counter = h("div", { class: "big" + (P_.phase === "prep" ? " prep" : "") }, "0", h("small", {}, P_.phase === "prep" ? "pasiruošk" : (s.type === "hold" ? "laikyk" : "judėk")));
+  const mainBtn = s.type === "reps"
+    ? h("button", { class: "btn", on: { click: () => { beep(990, .2); goStep(P_.i + 1); } } }, "Atlikta ✓")
+    : h("button", { class: "btn", on: { click: () => { P_.paused = !P_.paused; P_.last = performance.now(); renderPlayer(false); } } }, P_.paused ? "▶ Tęsti" : "❚❚ Pauzė");
+  r.replaceChildren(h("div", { class: "p-in" },
+    h("div", { class: "p-top" },
+      h("button", { class: "x", "aria-label": "Uždaryti", on: { click: closePlayer } }, "✕"),
+      h("div", { class: "meter" }, h("i", { style: "width:" + (P_.i / total * 100) + "%" })),
+      h("span", { class: "muted num", style: "font-size:.85rem" }, (P_.i + 1) + "/" + total)),
+    fig,
+    h("div", { class: "p-name" }, s.side ? h("span", { class: "side" }, s.side) : null, h("h2", {}, ex.n), h("p", { class: "p-desc" }, ex.d)),
+    counter,
+    h("div", { class: "ctrl" },
+      h("button", { class: "round", "aria-label": "Ankstesnis", on: { click: () => goStep(P_.i - 1) } }, "‹"),
+      mainBtn,
+      h("button", { class: "round", "aria-label": "Praleisti", on: { click: () => goStep(P_.i + 1) } }, "›")),
+    h("p", { class: "next-up" }, nxt ? "Toliau: " + EX[nxt.id].n + (nxt.side ? " (" + nxt.side.toLowerCase() + ")" : "") : "Paskutinis pratimas")));
+  updateCounter();
+}
+function finish() {
+  P_.phase = "fin";
+  store.done[P_.n] = Date.now(); save();
+  beep(880, .15); setTimeout(() => beep(1320, .3), 180); buzz([100, 60, 100, 60, 200]);
+  const n = P_.n;
+  P_.root.replaceChildren(h("div", { class: "p-in" }, h("div", { class: "fin" },
+    h("div", { class: "big" }, "✓"),
+    h("h1", {}, "Diena " + n + " atlikta"),
+    h("p", { class: "muted" }, n < 28 ? "Puiku. Rytoj laukia diena " + (n + 1) + ": " + TYPES[DAYS[n].type].n.toLowerCase() + "." : "Programa baigta! Pakartok 4 savaitę ir stebėk pažangą."),
+    h("button", { class: "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Į programą"))));
+}
+
+route();
+</script>
+</body>
+</html>
