@@ -15,116 +15,211 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: one narrow column like a training log; day tiles in 7-wide week strips; full-screen player. */
+/* Layout: app shell — one narrow column, fixed bottom tab bar, bottom sheets for detail, full-screen player. */
 :root{
-  --bg:#EEF1EF; --surface:#FFFFFF; --ink:#141C19; --muted:#5B6863; --line:#D6DDD9;
-  --accent:#1F4FD1; --accent-ink:#FFFFFF; --far:#A3B0AB; --good:#23885A; --good-soft:#DDF0E6;
+  --bg:#F1F3F2; --surface:#FFFFFF; --surface-2:#E8ECEA; --ink:#121917; --muted:#5D6A65; --line:#DCE2DF;
+  --accent:#1F4FD1; --accent-ink:#FFFFFF; --accent-soft:#E3EAFD; --good:#1F8A57; --good-soft:#DCF1E6; --warn:#C2410C; --warn-soft:#FDE7DA;
+  --hero:#121917; --hero-ink:#F3F6F4; --hero-muted:#9DABA5;
+  --shadow:0 1px 2px rgba(18,25,23,.06),0 6px 20px rgba(18,25,23,.06);
+  --nav:rgba(255,255,255,.82);
   --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
   --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0E1312; --surface:#172020; --ink:#E7EEEB; --muted:#93A29C; --line:#26312F;
-    --accent:#7598FF; --accent-ink:#0A1230; --far:#4A5A56; --good:#4CC48A; --good-soft:#163428;
+    --bg:#0D1211; --surface:#161E1C; --surface-2:#1F2927; --ink:#E9EFEC; --muted:#93A29C; --line:#26312E;
+    --accent:#7C9DFF; --accent-ink:#0A1230; --accent-soft:#1B2647; --good:#4CC48A; --good-soft:#133224; --warn:#FB923C; --warn-soft:#3A2214;
+    --hero:#1C2624; --hero-ink:#F3F6F4; --hero-muted:#9DABA5;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    --nav:rgba(22,30,28,.85);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0E1312; --surface:#172020; --ink:#E7EEEB; --muted:#93A29C; --line:#26312F;
-  --accent:#7598FF; --accent-ink:#0A1230; --far:#4A5A56; --good:#4CC48A; --good-soft:#163428;
+  --bg:#0D1211; --surface:#161E1C; --surface-2:#1F2927; --ink:#E9EFEC; --muted:#93A29C; --line:#26312E;
+  --accent:#7C9DFF; --accent-ink:#0A1230; --accent-soft:#1B2647; --good:#4CC48A; --good-soft:#133224; --warn:#FB923C; --warn-soft:#3A2214;
+  --hero:#1C2624; --hero-ink:#F3F6F4; --hero-muted:#9DABA5;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  --nav:rgba(22,30,28,.85);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 110px;display:flex;flex-direction:column;gap:22px}
-h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
-h1{font-size:1.9rem;font-weight:800;line-height:1.05}
-h2{font-size:1.25rem;font-weight:800}
-h3{font-size:1.05rem;font-weight:600}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px calc(110px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:20px;animation:in .28s ease both}
+@keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em}
+h1{font-size:2rem;font-weight:800;line-height:1.05}
+h2{font-size:1.3rem;font-weight:800;line-height:1.15}
+h3{font-size:1.02rem;font-weight:600;line-height:1.25}
 p{margin:0}
 .eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
 .muted{color:var(--muted)}
-button{font:inherit;color:inherit;cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-user-select:none;user-select:none}
 button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink);font-size:1.02rem;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.ico{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn{border:0;border-radius:16px;padding:15px 20px;font-weight:700;background:var(--accent);color:var(--accent-ink);font-size:1.02rem;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.light{background:var(--hero-ink);color:var(--hero)}
 .btn.block{width:100%}
 svg.fig{display:block;width:100%;height:auto}
 .fbox,.p-fig{overflow:hidden}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.link{background:none;border:0;color:var(--accent);font-weight:700;padding:4px 0;font-size:.92rem}
 
-/* top */
-.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-.goal{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+/* header + stats */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.streak{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 8px;font-weight:700;font-size:.9rem;box-shadow:var(--shadow)}
+.streak .ico{width:18px;height:18px;color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border-radius:16px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat b{font-family:var(--display);font-size:1.5rem;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted);font-weight:600}
 
-/* hero */
-.hero{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;display:grid;grid-template-columns:1fr 120px;gap:14px;align-items:center}
-.hero .txt{display:flex;flex-direction:column;gap:8px;min-width:0}
-.meter{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
-.meter>i{display:block;height:100%;background:var(--good);border-radius:99px}
-.hero .btn{margin-top:6px}
-.num{font-variant-numeric:tabular-nums}
+/* today card */
+.today{background:var(--hero);color:var(--hero-ink);border-radius:26px;overflow:hidden;display:flex;flex-direction:column}
+.today .fbox{border-radius:0}
+.today .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.today .eyebrow{color:var(--hero-muted)}
+.today .meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--hero-muted);font-size:.9rem;font-weight:600}
+.today .meta span{display:inline-flex;align-items:center;gap:5px}
+.today .meta .ico{width:16px;height:16px}
+.today .row{display:flex;gap:10px}
+.today .row .btn{flex:1}
+.today .row .btn.sq{flex:none;width:54px;padding:0;background:rgba(255,255,255,.12);color:var(--hero-ink)}
+.meter{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.meter>i{display:block;height:100%;background:var(--good);border-radius:99px;transition:width .3s}
 
 /* weeks */
 .week{display:flex;flex-direction:column;gap:10px}
-.week-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.day{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
-.day b{font-family:var(--display);font-size:1.15rem;line-height:1.1;font-variant-numeric:tabular-nums}
-.day span{font-size:.62rem;font-weight:700;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
-.day.done{background:var(--good-soft);border-color:var(--good)}
-.day.done span{color:var(--good)}
-.day.next{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
-.legend{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:.85rem;color:var(--muted)}
-.legend b{color:var(--ink);font-weight:700}
-.note{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:6px}
+.day{border:0;background:var(--surface);border-radius:14px;padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;box-shadow:var(--shadow);transition:transform .12s}
+.day:active{transform:scale(.94)}
+.day b{font-family:var(--display);font-size:1.1rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.day span{font-size:.6rem;font-weight:700;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+.day.done{background:var(--good);color:#fff}
+.day.done span{color:rgba(255,255,255,.85)}
+.day.next{box-shadow:0 0 0 2px var(--accent) inset,var(--shadow)}
+.day.rest{background:var(--surface-2);box-shadow:none}
+.day.done.rest{background:var(--good)}
+.note{font-size:.88rem;color:var(--muted);background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.note b{color:var(--ink)}
 
-/* day view */
-.back{background:none;border:0;padding:6px 0;color:var(--muted);font-weight:600;display:inline-flex;align-items:center;gap:6px;align-self:flex-start}
-.list{display:flex;flex-direction:column;gap:10px}
-.sec{margin-top:6px}
-.ex{background:var(--surface);border:1px solid var(--line);border-radius:16px;display:grid;grid-template-columns:76px 1fr;gap:12px;padding:8px 12px 8px 8px;align-items:center;text-align:left;width:100%}
-.ex .fbox{background:var(--bg);border-radius:12px}
-.ex .info{min-width:0;display:flex;flex-direction:column;gap:2px}
-.ex .dose{font-weight:700;color:var(--accent);font-size:.9rem;font-variant-numeric:tabular-nums}
-.ex .desc{font-size:.9rem;color:var(--muted);display:none}
-.ex.open .desc{display:block}
-.sticky{position:fixed;left:0;right:0;bottom:0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 70%,transparent);display:flex;justify-content:center;z-index:5}
+/* lists */
+.list{display:flex;flex-direction:column;gap:8px}
+.ex{border:0;background:var(--surface);border-radius:18px;display:grid;grid-template-columns:72px 1fr auto;gap:12px;padding:8px 12px 8px 8px;align-items:center;text-align:left;width:100%;box-shadow:var(--shadow);transition:transform .12s}
+.ex:active{transform:scale(.98)}
+.ex .fbox{border-radius:12px}
+.ex .info{min-width:0;display:flex;flex-direction:column;gap:1px}
+.ex .dose{font-weight:700;color:var(--accent);font-size:.88rem;font-variant-numeric:tabular-nums}
+.ex .chev{color:var(--muted)}
+.back{background:var(--surface);border:0;width:42px;height:42px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.dayhead{display:flex;flex-direction:column;gap:6px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.82rem;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--surface);color:var(--muted)}
+.pill .ico{width:15px;height:15px}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding:2px 4px}
+.chips::-webkit-scrollbar{display:none}
+.chips button{border:0;background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem;color:var(--muted);white-space:nowrap;box-shadow:var(--shadow)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.lib{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{border:0;background:var(--surface);border-radius:18px;padding:8px 8px 12px;display:flex;flex-direction:column;gap:8px;min-width:0;text-align:left;box-shadow:var(--shadow);transition:transform .12s}
+.card:active{transform:scale(.97)}
+.card .fbox{border-radius:12px}
+.card h3{padding-inline:4px;font-size:.95rem}
+.card .cat{padding-inline:4px;font-size:.75rem;color:var(--muted);font-weight:600}
+
+/* sticky action + nav */
+.sticky{position:fixed;left:0;right:0;bottom:calc(68px + env(safe-area-inset-bottom,0px));padding:12px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 65%,transparent);display:flex;justify-content:center;z-index:5}
 .sticky .in{max-width:560px;width:100%;display:flex;gap:10px}
 .sticky .in .btn:first-child{flex:1}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--nav);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.72rem;font-weight:700;color:var(--muted)}
+.nav button[aria-current="page"]{color:var(--accent)}
+.nav button .ico{width:24px;height:24px}
 
-/* tabs */
-.tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px}
-.tabs button{flex:1;border:0;background:none;padding:9px;border-radius:10px;font-weight:700;color:var(--muted)}
-.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-.lib{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.lib .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.lib .card .fbox{background:var(--bg);border-radius:12px}
-.lib .card p{font-size:.84rem;color:var(--muted)}
+/* progress page */
+.panel{background:var(--surface);border-radius:20px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.heat i{aspect-ratio:1;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:.72rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.heat i.on{background:var(--good);color:#fff}
+.hist{display:flex;flex-direction:column}
+.hist .r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.hist .r:first-child{border-top:0}
+.tag{font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.tag.l{background:var(--good-soft);color:var(--good)}
+.tag.s{background:var(--warn-soft);color:var(--warn)}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0}
+.set .t{display:flex;flex-direction:column;min-width:0}
+.set .t small{color:var(--muted);font-size:.82rem}
+.sw{width:50px;height:30px;border-radius:99px;border:0;background:var(--surface-2);position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--good)}
+.sw[aria-checked="true"]::after{transform:translateX(20px)}
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:3px;gap:2px;flex:none}
+.seg button{border:0;background:none;padding:7px 10px;border-radius:9px;font-size:.82rem;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* bottom sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,12,11,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s ease both}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow-y:auto;border-radius:26px 26px 0 0;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;animation:up .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes up{from{transform:translateY(40%);opacity:.5}}
+.grab{width:40px;height:5px;border-radius:9px;background:var(--line);align-self:center;margin-bottom:4px}
+.sheet .fbox{border-radius:18px;position:relative}
+.sheet .close{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(18,25,23,.45);color:#fff;display:flex;align-items:center;justify-content:center}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:12px;padding-bottom:12px;position:relative}
+.steps li::before{content:"";width:12px;height:12px;border-radius:50%;border:3px solid var(--accent);margin-top:6px;background:var(--surface);z-index:1}
+.steps li:not(:last-child)::after{content:"";position:absolute;left:7px;top:20px;bottom:-4px;width:2px;background:var(--line)}
 
 /* player */
-.player{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.p-in{flex:1;max-width:560px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 16px;min-height:0}
-.p-top{display:flex;align-items:center;gap:12px}
-.p-top .meter{flex:1}
-.x{border:0;background:var(--surface);width:40px;height:40px;border-radius:12px;font-size:1.2rem;border:1px solid var(--line)}
-.p-fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#F7F7FB 50%,#D2D2DE 50%);border-radius:22px}
+.player{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);animation:fade .2s ease both}
+.p-in{flex:1;max-width:560px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 14px;min-height:0}
+.p-top{display:flex;align-items:center;gap:10px}
+.segs{flex:1;display:flex;gap:3px}
+.segs i{flex:1;height:5px;border-radius:9px;background:var(--surface-2)}
+.segs i.d{background:var(--good)}
+.segs i.c{background:var(--accent)}
+.iconbtn{border:0;background:var(--surface);width:42px;height:42px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow);flex:none}
+.p-fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#F7F7FB 50%,#D2D2DE 50%);border-radius:24px;position:relative;touch-action:pan-y}
 .p-fig svg{max-height:100%;width:auto;max-width:100%;height:100%}
-.p-name{display:flex;flex-direction:column;gap:4px}
-.side{display:inline-block;font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink);align-self:flex-start}
-.p-desc{font-size:.92rem;color:var(--muted)}
-.big{font-family:var(--display);font-weight:800;font-size:4.2rem;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
-.big small{display:block;font-family:var(--body);font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
-.big.prep{color:var(--muted)}
-.ctrl{display:grid;grid-template-columns:56px 1fr 56px;gap:10px}
-.ctrl .round{border:1px solid var(--line);background:var(--surface);border-radius:14px;font-size:1.3rem}
-.next-up{font-size:.85rem;color:var(--muted);text-align:center}
-.fin{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center}
-.fin .big{color:var(--good)}
-@media (max-height:640px){.big{font-size:3.2rem}.p-desc{display:none}}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.p-fig .side{position:absolute;top:12px;left:12px}
+.side{display:inline-flex;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
+.p-mid{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.p-name{display:flex;flex-direction:column;gap:4px;min-width:0}
+.p-desc{font-size:.9rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ring{position:relative;width:112px;height:112px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .trk{fill:none;stroke:var(--surface-2);stroke-width:9}
+.ring .val{fill:none;stroke:var(--accent);stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .25s linear}
+.ring.prep .val{stroke:var(--warn)}
+.ring.reps .val{stroke:var(--good)}
+.ring .lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.ring .lbl b{font-family:var(--display);font-size:2.2rem;font-weight:800;font-variant-numeric:tabular-nums}
+.ring .lbl small{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:22px}
+.ctrl .sm{width:54px;height:54px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
+.ctrl .main{width:76px;height:76px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(31,79,209,.35);transition:transform .12s}
+.ctrl .main:active,.ctrl .sm:active{transform:scale(.93)}
+.ctrl .main .ico{width:30px;height:30px}
+.ctrl .main.done{background:var(--good);box-shadow:0 8px 24px rgba(31,138,87,.35)}
+.next-up{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.fin{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;text-align:center}
+.fin .badge{width:96px;height:96px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center;align-self:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.fin .badge .ico{width:48px;height:48px;stroke-width:3}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.feel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.feel button{border:0;background:var(--surface);border-radius:14px;padding:12px 4px;font-weight:700;box-shadow:var(--shadow)}
+.feel button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+@media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{-webkit-line-clamp:2}.ctrl .main{width:64px;height:64px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -401,132 +496,252 @@ function buildDay(n) {
   return { n, w, type, sections: [["Apšilimas", warm], ["Pagrindinė dalis", main], ["Pabaiga", [time("relax", 60)]]] };
 }
 const DAYS = Array.from({ length: 28 }, (_, i) => buildDay(i + 1));
-const doseText = it => (it.type === "reps" ? it.v + " kartų" : it.v + " s") + (it.sides ? " / koja" : "");
-function dayMinutes(d) {
-  let s = 0;
-  for (const [, items] of d.sections) for (const it of items) s += (it.sides ? 2 : 1) * (it.type === "reps" ? it.v * 3.5 : it.v + 5);
-  return Math.max(2, Math.round(s / 60));
-}
-function mainFig(d) { return ({ A: "front_split", B: "middle_split", C: "high_kick", L: "fold_stand", R: "relax", T: "high_kick" })[d.type]; }
-
-/* ---------- Saugojimas ---------- */
+/* ---------- Nustatymai ir saugojimas ---------- */
 const KEY = "spagatas.v1";
-let store = { done: {} };
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.done) store = s; } catch (e) {}
+let store = { done: {}, log: [], settings: { sound: true, vib: true, level: 1 } };
+try {
+  const s = JSON.parse(localStorage.getItem(KEY));
+  if (s && s.done) store = { done: s.done, log: s.log || [], settings: Object.assign({ sound: true, vib: true, level: 1 }, s.settings || {}) };
+} catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
 const isDone = n => !!store.done[n];
 const nextDay = () => { for (let i = 1; i <= 28; i++) if (!isDone(i)) return i; return 28; };
+const LEVELS = [[0.75, "Lengviau"], [1, "Įprastai"], [1.25, "Sunkiau"]];
+function eff(it) {
+  const m = store.settings.level || 1;
+  return it.type === "reps" ? Math.max(3, Math.round(it.v * m)) : Math.max(10, Math.round(it.v * m / 5) * 5);
+}
+const doseText = it => (it.type === "reps" ? eff(it) + " kartų" : eff(it) + " s") + (it.sides ? " / koja" : "");
+function dayMinutes(d) {
+  let s = 0;
+  for (const [, items] of d.sections) for (const it of items) s += (it.sides ? 2 : 1) * (it.type === "reps" ? eff(it) * 3.5 : eff(it) + 5);
+  return Math.max(2, Math.round(s / 60));
+}
+const dayCount = d => d.sections.reduce((s, [, it]) => s + it.length, 0);
+function mainFig(d) { return ({ A: "front_split", B: "middle_split", C: "high_kick", L: "fold_stand", R: "relax", T: "high_kick" })[d.type]; }
+const dkey = ts => { const d = new Date(ts); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
+function streak() {
+  const set = new Set(Object.values(store.done).map(dkey));
+  let c = 0; const d = new Date();
+  if (!set.has(dkey(d))) d.setDate(d.getDate() - 1);
+  while (set.has(dkey(d))) { c++; d.setDate(d.getDate() - 1); }
+  return c;
+}
+const totalMin = () => store.log.reduce((s, l) => s + (l.min || 0), 0);
+const CATS = [["warm", "Apšilimas", ["warm_jog", "squat", "swing_front", "swing_side", "relax"]],
+  ["front", "Išilginis", ["lunge", "half_split", "front_split", "lying_ham", "pigeon", "seated_fold", "fold_stand", "quad_stretch"]],
+  ["mid", "Skersinis", ["butterfly", "straddle_side", "middle_split", "cossack"]],
+  ["kick", "Spyriai", ["leg_raise_front", "leg_raise_side", "front_kick", "side_kick", "high_kick"]]];
+const catOf = id => (CATS.find(c => c[2].includes(id)) || CATS[0])[1];
 
-/* ---------- UI ---------- */
+/* ---------- Ikonos ---------- */
+const ICONS = {
+  home: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
+  grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  chart: "M5 20V11M12 20V4M19 20v-6",
+  play: ["M7 4.5v15l12-7.5z", 1], pause: ["M7 4h3.5v16H7zM13.5 4H17v16h-3.5z", 1],
+  prev: "M15 18l-6-6 6-6", next: "M9 6l6 6-6 6", close: "M6 6l12 12M18 6 6 18", check: "M4.5 12.5l5 5L19.5 7",
+  flame: "M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 2 1.5 3 2.5 3-1-3 0-6 0-8z",
+  clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+  list: "M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01",
+  sound: "M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12",
+  mute: "M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6",
+};
+function icon(name) {
+  const spec = ICONS[name], d = Array.isArray(spec) ? spec[0] : spec, filled = Array.isArray(spec);
+  const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ico"); s.setAttribute("aria-hidden", "true");
+  const p = document.createElementNS(NS, "path"); p.setAttribute("d", d);
+  if (filled) { p.setAttribute("fill", "currentColor"); p.setAttribute("stroke", "none"); }
+  s.append(p); return s;
+}
+
+/* ---------- UI pagalbininkai ---------- */
 const app = document.getElementById("app");
 const h = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag);
   for (const k in attrs) {
+    if (attrs[k] == null || attrs[k] === false) continue;
     if (k === "on") for (const ev in attrs.on) e.addEventListener(ev, attrs.on[ev]);
     else if (k === "class") e.className = attrs[k];
-    else if (k === "html") e.innerHTML = attrs[k];
     else e.setAttribute(k, attrs[k]);
   }
-  for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c));
+  for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c));
   return e;
 };
 const fbox = (id, mirror, still) => h("div", { class: "fbox" }, makeFig(id, mirror, still));
-let tab = "prog";
+const go = hash => { location.hash = hash; };
+let libCat = "all";
 
 function route() {
+  closeSheet();
   const m = location.hash.match(/^#day-(\d+)$/);
   if (m && +m[1] >= 1 && +m[1] <= 28) return renderDay(+m[1]);
-  if (location.hash === "#pratimai") tab = "lib";
+  if (location.hash === "#pratimai") return renderLib();
+  if (location.hash === "#pazanga") return renderProgress();
   renderHome();
 }
-window.addEventListener("hashchange", route);
+window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
 
+function shell(view, ...content) {
+  app.replaceChildren(h("main", { class: "wrap" }, ...content), ...(shell.extra || []), nav(view));
+  shell.extra = null;
+}
+function nav(view) {
+  const b = (v, hash, ic, label) => h("button", { "aria-current": view === v ? "page" : null, on: { click: () => go(hash) } }, icon(ic), label);
+  return h("nav", { class: "nav", "aria-label": "Pagrindinis meniu" }, h("div", { class: "in" },
+    b("home", "", "home", "Šiandien"), b("lib", "pratimai", "grid", "Pratimai"), b("prog", "pazanga", "chart", "Pažanga")));
+}
+function statsRow() {
+  const done = Object.keys(store.done).length, st = streak();
+  return h("div", { class: "stats" },
+    h("div", { class: "stat" }, h("b", {}, done + "/28"), h("span", {}, "dienų atlikta")),
+    h("div", { class: "stat" }, h("b", {}, String(st)), h("span", {}, st === 1 ? "diena iš eilės" : "dienos iš eilės")),
+    h("div", { class: "stat" }, h("b", {}, String(totalMin())), h("span", {}, "minučių")));
+}
+
+/* ---------- Šiandien ---------- */
 function renderHome() {
-  app.replaceChildren();
-  const doneCount = Object.keys(store.done).length;
-  const nd = nextDay(), d = DAYS[nd - 1];
-  const wrap = h("main", { class: "wrap" },
-    h("header", { class: "top" },
-      h("div", {}, h("p", { class: "eyebrow" }, "28 dienų programa"), h("h1", {}, "Špagato kelias")),
-    ),
-    h("div", { class: "goal" }, h("span", { class: "chip" }, "Tikslas: išilginis ir skersinis špagatas"), h("span", { class: "chip" }, "Spyris į galvos aukštį")),
-    h("section", { class: "hero" },
-      h("div", { class: "txt" },
-        h("p", { class: "eyebrow" }, doneCount >= 28 ? "Programa baigta" : "Šiandien"),
-        h("h2", {}, "Diena " + nd + " · " + TYPES[d.type].n),
-        h("p", { class: "muted num" }, "~" + dayMinutes(d) + " min · atlikta " + doneCount + " iš 28"),
-        h("div", { class: "meter" }, h("i", { style: "width:" + (doneCount / 28 * 100) + "%" })),
-        h("button", { class: "btn", on: { click: () => (location.hash = "day-" + nd) } }, "Atidaryti dieną " + nd + " →")),
-      fbox(mainFig(d), false)),
-    h("div", { class: "tabs", role: "group" },
-      h("button", { "aria-pressed": tab === "prog", on: { click: () => { tab = "prog"; renderHome(); } } }, "Programa"),
-      h("button", { "aria-pressed": tab === "lib", on: { click: () => { tab = "lib"; renderHome(); } } }, "Visi pratimai")),
-  );
-  if (tab === "prog") {
-    for (let w = 0; w < 4; w++) {
-      const days = h("div", { class: "days" });
-      for (let i = w * 7 + 1; i <= w * 7 + 7; i++) {
-        const dd = DAYS[i - 1];
-        days.append(h("button", { class: "day" + (isDone(i) ? " done" : "") + (i === nd && !isDone(i) ? " next" : ""), "aria-label": "Diena " + i + ", " + TYPES[dd.type].n + (isDone(i) ? ", atlikta" : ""), on: { click: () => (location.hash = "day-" + i) } },
-          h("b", {}, isDone(i) ? "✓" : String(i)), h("span", {}, TYPES[dd.type].s)));
-      }
-      wrap.append(h("section", { class: "week" },
-        h("div", { class: "week-h" }, h("h3", {}, (w + 1) + " savaitė · " + WEEKS[w]), h("span", { class: "muted num", style: "font-size:.85rem" }, "laikymas " + [30, 40, 50, 60][w] + " s")), days));
+  const nd = nextDay(), d = DAYS[nd - 1], done = Object.keys(store.done).length, st = streak();
+  const date = new Date().toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" });
+  const weeks = [];
+  for (let w = 0; w < 4; w++) {
+    const days = h("div", { class: "days" });
+    for (let i = w * 7 + 1; i <= w * 7 + 7; i++) {
+      const dd = DAYS[i - 1];
+      days.append(h("button", { class: "day" + (isDone(i) ? " done" : "") + (i === nd && !isDone(i) ? " next" : "") + (dd.type === "R" ? " rest" : ""),
+        "aria-label": "Diena " + i + ", " + TYPES[dd.type].n + (isDone(i) ? ", atlikta" : ""), on: { click: () => go("day-" + i) } },
+        h("b", {}, String(i)), h("span", {}, isDone(i) ? "✓" : TYPES[dd.type].s)));
     }
-    wrap.append(h("div", { class: "legend" },
-      h("b", {}, "Išil."), h("span", {}, "išilginis špagatas: įtūpstai, pusinis špagatas, balandis"),
-      h("b", {}, "Skers."), h("span", {}, "skersinis špagatas: drugelis, kazokiški pritūpimai"),
-      h("b", {}, "Spyr."), h("span", {}, "spyriai ir kojų kėlimai, aktyvus lankstumas"),
-      h("b", {}, "Leng."), h("span", {}, "lengvas tempimas, atsigavimas")));
-    wrap.append(h("div", { class: "note" },
+    weeks.push(h("section", { class: "week" },
+      h("div", { class: "sec-h" }, h("h3", {}, (w + 1) + " savaitė · " + WEEKS[w]), h("span", { class: "muted num", style: "font-size:.82rem" }, "laikymas " + Math.round([30, 40, 50, 60][w] * store.settings.level / 5) * 5 + " s")), days));
+  }
+  shell("home",
+    h("header", { class: "top" },
+      h("div", {}, h("p", { class: "eyebrow" }, date), h("h1", {}, "Špagato kelias")),
+      h("span", { class: "streak", title: "Dienos iš eilės" }, icon("flame"), String(st))),
+    h("section", { class: "today" },
+      fbox(mainFig(d), false),
+      h("div", { class: "body" },
+        h("p", { class: "eyebrow" }, done >= 28 ? "Programa baigta · kartok" : "Diena " + nd + " iš 28 · " + (d.w + 1) + " savaitė"),
+        h("h2", {}, TYPES[d.type].n),
+        h("div", { class: "meta" }, h("span", {}, icon("clock"), "~" + dayMinutes(d) + " min"), h("span", {}, icon("list"), dayCount(d) + " pratimai")),
+        h("div", { class: "row" },
+          h("button", { class: "btn light", on: { click: () => startPlayer(nd) } }, icon("play"), "Pradėti treniruotę"),
+          h("button", { class: "btn sq", "aria-label": "Peržiūrėti pratimus", on: { click: () => go("day-" + nd) } }, icon("list"))))),
+    statsRow(),
+    h("div", { class: "sec-h" }, h("h2", {}, "Programa"), h("span", { class: "muted num" }, Math.round(done / 28 * 100) + "%")),
+    h("div", { class: "meter" }, h("i", { style: "width:" + (done / 28 * 100) + "%" })),
+    ...weeks,
+    h("div", { class: "note" },
       h("p", {}, h("b", {}, "Visada apšilk. "), "Tempk šiltus raumenis, niekada šaltus."),
       h("p", {}, h("b", {}, "Tempimas, ne skausmas. "), "Jauti tempimą, bet ne aštrų skausmą sąnaryje. Nespyruokliuok laikydamas pozą."),
       h("p", {}, h("b", {}, "Kvėpuok. "), "Su kiekvienu iškvėpimu atsipalaiduok giliau."),
-      h("p", {}, "Po 28 dienų pradėk iš naujo arba kartok 4 savaitę. Pilnas špagatas dažnai užtrunka keletą mėnesių, tad svarbiausia reguliarumas.")));
-    if (doneCount) wrap.append(h("button", { class: "btn ghost", on: { click: resetAsk } }, "Pradėti programą iš naujo"));
-  } else {
-    const lib = h("div", { class: "lib" });
-    for (const id in EX) lib.append(h("article", { class: "card" }, fbox(id, false), h("h3", {}, EX[id].n), h("p", {}, EX[id].d)));
-    wrap.append(lib);
-  }
-  app.append(wrap);
-}
-function resetAsk(e) {
-  const b = e.currentTarget;
-  if (b.dataset.armed) { store = { done: {} }; save(); renderHome(); return; }
-  b.dataset.armed = "1"; b.textContent = "Spausk dar kartą, kad ištrintum progresą";
+      h("p", {}, "Pilnas špagatas dažnai užtrunka keletą mėnesių. Po 28 dienų kartok programą su didesniu sunkumu (nustatymai skiltyje „Pažanga“).")));
 }
 
+/* ---------- Diena ---------- */
 function renderDay(n) {
-  app.replaceChildren();
-  window.scrollTo(0, 0);
   const d = DAYS[n - 1];
-  const wrap = h("main", { class: "wrap" },
-    h("button", { class: "back", on: { click: () => (location.hash = "") } }, "← Programa"),
-    h("div", {}, h("p", { class: "eyebrow" }, (d.w + 1) + " savaitė · " + WEEKS[d.w]),
-      h("h1", {}, "Diena " + n), h("p", { class: "muted" }, TYPES[d.type].n + " · ~" + dayMinutes(d) + " min" + (isDone(n) ? " · ✓ atlikta" : ""))));
-  if (d.type === "R") wrap.append(h("p", { class: "muted" }, "Poilsio diena. Raumenys atsigauna ir prisitaiko. Jei nori, lengvai pasivaikščiok ir atlik atsipalaidavimą."));
-  if (d.type === "T") wrap.append(h("p", { class: "muted" }, "Pasitikrink: kiek arti grindų nusileidi per špagatus ir ar pasieki taikinį galvos aukštyje. Palygink su 1 diena."));
+  const secs = [];
+  if (d.type === "R") secs.push(h("p", { class: "muted" }, "Poilsio diena. Raumenys atsigauna ir prisitaiko. Lengvai pasivaikščiok ir atlik atsipalaidavimą."));
+  if (d.type === "T") secs.push(h("p", { class: "muted" }, "Pasitikrink: kiek arti grindų nusileidi per špagatus ir ar pasieki taikinį galvos aukštyje. Palygink su 1 diena."));
   for (const [title, items] of d.sections) {
-    const list = h("div", { class: "list" });
-    for (const it of items) {
-      const row = h("button", { class: "ex", "aria-expanded": "false", on: { click: () => { row.classList.toggle("open"); row.setAttribute("aria-expanded", row.classList.contains("open")); } } },
+    secs.push(h("section", { class: "list" }, h("p", { class: "eyebrow" }, title),
+      items.map(it => h("button", { class: "ex", on: { click: () => openSheet(it.id, it) } },
         fbox(it.id, false),
-        h("div", { class: "info" }, h("h3", {}, EX[it.id].n), h("span", { class: "dose" }, doseText(it)), h("p", { class: "desc" }, EX[it.id].d)));
-      list.append(row);
-    }
-    wrap.append(h("section", { class: "list sec" }, h("p", { class: "eyebrow" }, title), list));
+        h("div", { class: "info" }, h("h3", {}, EX[it.id].n), h("span", { class: "dose" }, doseText(it))),
+        h("span", { class: "chev" }, icon("next"))))));
   }
-  wrap.append(h("p", { class: "muted", style: "font-size:.85rem" }, "Paliesk pratimą, kad pamatytum instrukciją."));
-  const sticky = h("div", { class: "sticky" }, h("div", { class: "in" },
-    h("button", { class: "btn", on: { click: () => startPlayer(n) } }, "▶ Pradėti"),
-    h("button", { class: "btn ghost", on: { click: () => { if (isDone(n)) delete store.done[n]; else store.done[n] = Date.now(); save(); renderDay(n); } } }, isDone(n) ? "Atžymėti" : "Atlikta ✓")));
-  app.append(wrap, sticky);
+  shell.extra = [h("div", { class: "sticky" }, h("div", { class: "in" },
+    h("button", { class: "btn", on: { click: () => startPlayer(n) } }, icon("play"), "Pradėti"),
+    h("button", { class: "btn ghost", on: { click: () => { if (isDone(n)) delete store.done[n]; else store.done[n] = Date.now(); save(); renderDay(n); } } }, isDone(n) ? "Atžymėti" : "Atlikta")))];
+  shell("home",
+    h("div", { class: "top" },
+      h("button", { class: "back", style: "width:auto;padding:0 14px 0 8px;font-weight:700;gap:2px", on: { click: () => go("") } }, icon("prev"), "Šiandien"),
+      h("div", { style: "display:flex;gap:8px" },
+        n > 1 ? h("button", { class: "back", "aria-label": "Ankstesnė diena", on: { click: () => go("day-" + (n - 1)) } }, icon("prev")) : null,
+        n < 28 ? h("button", { class: "back", "aria-label": "Kita diena", on: { click: () => go("day-" + (n + 1)) } }, icon("next")) : null)),
+    h("div", { class: "dayhead" },
+      h("p", { class: "eyebrow" }, (d.w + 1) + " savaitė · " + WEEKS[d.w]),
+      h("h1", {}, "Diena " + n),
+      h("p", { class: "muted", style: "font-weight:600" }, TYPES[d.type].n)),
+    h("div", { class: "pills" },
+      h("span", { class: "pill" }, icon("clock"), "~" + dayMinutes(d) + " min"),
+      h("span", { class: "pill" }, icon("list"), dayCount(d) + " pratimai"),
+      isDone(n) ? h("span", { class: "pill ok" }, icon("check"), "Atlikta") : null),
+    ...secs);
+}
+
+/* ---------- Pratimai ---------- */
+function renderLib() {
+  const ids = libCat === "all" ? Object.keys(EX) : CATS.find(c => c[0] === libCat)[2];
+  shell("lib",
+    h("header", {}, h("p", { class: "eyebrow" }, Object.keys(EX).length + " pratimai"), h("h1", {}, "Pratimai")),
+    h("div", { class: "chips", role: "group", "aria-label": "Kategorija" },
+      [["all", "Visi"]].concat(CATS.map(c => [c[0], c[1]])).map(([k, l]) =>
+        h("button", { "aria-pressed": libCat === k, on: { click: () => { libCat = k; renderLib(); } } }, l))),
+    h("div", { class: "lib" }, ids.map(id => h("button", { class: "card", on: { click: () => openSheet(id) } },
+      fbox(id, false), h("h3", {}, EX[id].n), h("span", { class: "cat" }, catOf(id))))));
+}
+
+/* ---------- Pažanga ---------- */
+function renderProgress() {
+  const heat = h("div", { class: "heat" });
+  for (let i = 1; i <= 28; i++) heat.append(h("i", { class: isDone(i) ? "on" : "", title: "Diena " + i }, String(i)));
+  const FEEL = { l: "Lengva", g: "Gerai", s: "Sunku" };
+  const hist = store.log.slice(-12).reverse();
+  const sw = (key, label, sub) => h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, label), h("small", {}, sub)),
+    h("button", { class: "sw", role: "switch", "aria-checked": String(!!store.settings[key]), "aria-label": label,
+      on: { click: () => { store.settings[key] = !store.settings[key]; save(); renderProgress(); } } }));
+  const reset = h("button", { class: "btn ghost block", on: { click: e => {
+    const b = e.currentTarget;
+    if (b.dataset.armed) { store.done = {}; store.log = []; save(); renderProgress(); return; }
+    b.dataset.armed = "1"; b.textContent = "Spausk dar kartą: progresas bus ištrintas";
+  } } }, "Pradėti programą iš naujo");
+  shell("prog",
+    h("header", {}, h("p", { class: "eyebrow" }, "Tavo rezultatai"), h("h1", {}, "Pažanga")),
+    statsRow(),
+    h("section", { class: "panel" }, h("div", { class: "sec-h" }, h("h3", {}, "28 dienos"), h("span", { class: "muted num" }, Object.keys(store.done).length + " atlikta")), heat),
+    h("section", { class: "panel" }, h("h3", {}, "Istorija"),
+      hist.length ? h("div", { class: "hist" }, hist.map(l => h("div", { class: "r" },
+        h("div", {}, h("b", {}, "Diena " + l.n), h("p", { class: "muted", style: "font-size:.82rem" },
+          new Date(l.ts).toLocaleDateString("lt-LT", { month: "short", day: "numeric" }) + " · " + TYPES[DAYS[l.n - 1].type].n + " · " + l.min + " min")),
+        l.feel ? h("span", { class: "tag " + l.feel }, FEEL[l.feel]) : null)))
+        : h("p", { class: "muted" }, "Čia matysi atliktas treniruotes ir kaip jauteisi. Pradėk nuo šiandienos dienos.")),
+    h("section", { class: "panel" }, h("h3", {}, "Nustatymai"),
+      sw("sound", "Garsas", "Pyptelėjimai skaičiuojant laiką"),
+      sw("vib", "Vibracija", "Kai keičiasi pratimas (Android)"),
+      h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Sunkumas"), h("small", {}, "Laikymo laikas ir kartojimai")),
+        h("div", { class: "seg", role: "group" }, LEVELS.map(([v, l]) => h("button", { "aria-pressed": store.settings.level === v, on: { click: () => { store.settings.level = v; save(); renderProgress(); } } }, l)))),
+      reset));
+}
+
+/* ---------- Pratimo kortelė (bottom sheet) ---------- */
+let sheetEl = null;
+function closeSheet() { if (sheetEl) { sheetEl.remove(); sheetEl = null; document.removeEventListener("keydown", sheetKey); } }
+const sheetKey = e => { if (e.key === "Escape") closeSheet(); };
+function openSheet(id, it, mirror = false) {
+  closeSheet();
+  const ex = EX[id], steps = ex.d.split(/(?<=\.)\s+/);
+  const figWrap = h("div", { class: "fbox" }, makeFig(id, mirror),
+    h("button", { class: "close", "aria-label": "Uždaryti", on: { click: closeSheet } }, icon("close")));
+  const sideSeg = (it && it.sides) ? h("div", { class: "seg", role: "group", "aria-label": "Pusė" },
+    [[false, "Dešinė"], [true, "Kairė"]].map(([m, l]) => h("button", { "aria-pressed": mirror === m, on: { click: () => openSheet(id, it, m) } }, l))) : null;
+  sheetEl = h("div", { class: "scrim", on: { click: e => { if (e.target === sheetEl) closeSheet(); } } },
+    h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": ex.n },
+      h("div", { class: "grab" }), figWrap,
+      h("div", { class: "sec-h" }, h("div", {}, h("p", { class: "eyebrow" }, catOf(id)), h("h2", {}, ex.n)), sideSeg),
+      it ? h("div", { class: "pills" }, h("span", { class: "pill" }, icon(it.type === "reps" ? "list" : "clock"), doseText(it))) : null,
+      h("p", { class: "eyebrow" }, "Kaip atlikti"),
+      h("ol", { class: "steps" }, steps.map(s => h("li", {}, h("span", {}, s))))));
+  document.body.append(sheetEl);
+  document.addEventListener("keydown", sheetKey);
 }
 
 /* ---------- Treniruotės grotuvas ---------- */
 let audio = null, wake = null, P_ = null;
 function beep(freq = 880, dur = .12) {
+  if (!store.settings.sound) return;
   try {
     if (!audio) return;
     const o = audio.createOscillator(), g = audio.createGain();
@@ -537,19 +752,23 @@ function beep(freq = 880, dur = .12) {
     o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime + dur + .02);
   } catch (e) {}
 }
-const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+const buzz = ms => { if (!store.settings.vib) return; try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
 async function lockScreen() { try { wake = await navigator.wakeLock.request("screen"); } catch (e) { wake = null; } }
 document.addEventListener("visibilitychange", () => { if (P_ && document.visibilityState === "visible") lockScreen(); });
+const RING_C = 2 * Math.PI * 52;
 
 function startPlayer(n) {
+  closeSheet();
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
   lockScreen();
   const steps = [];
   for (const [, items] of DAYS[n - 1].sections) for (const it of items) {
-    if (it.sides) { steps.push({ ...it, side: "Dešinė koja", mirror: false }); steps.push({ ...it, side: "Kairė koja", mirror: true }); }
-    else steps.push({ ...it, side: null, mirror: false });
+    const v = eff(it);
+    if (it.sides) { steps.push({ ...it, v, side: "Dešinė koja", mirror: false }); steps.push({ ...it, v, side: "Kairė koja", mirror: true }); }
+    else steps.push({ ...it, v, side: null, mirror: false });
   }
-  P_ = { n, steps, i: 0, phase: "prep", left: 0, paused: false, last: performance.now(), timer: null, root: h("div", { class: "player", role: "dialog", "aria-modal": "true" }) };
+  P_ = { n, steps, i: 0, phase: "prep", left: 0, paused: false, last: performance.now(), start: Date.now(), timer: null,
+    root: h("div", { class: "player", role: "dialog", "aria-modal": "true", "aria-label": "Treniruotė" }) };
   document.body.append(P_.root);
   document.body.style.overflow = "hidden";
   goStep(0);
@@ -578,61 +797,79 @@ function tick() {
   const now = performance.now(), dt = (now - P_.last) / 1000; P_.last = now;
   P_.left -= dt;
   const sec = Math.ceil(P_.left);
-  if (sec !== P_.lastSec) {
-    P_.lastSec = sec;
-    if (sec <= 3 && sec >= 1) beep(660, .09);
-    updateCounter();
-  }
+  if (sec !== P_.lastSec) { P_.lastSec = sec; if (sec <= 3 && sec >= 1) beep(660, .09); }
+  updateCounter();
   if (P_.left <= 0) {
     if (P_.phase === "prep") { P_.phase = "work"; P_.left = s.v; P_.lastSec = null; beep(990, .25); buzz(150); renderPlayer(false); }
     else { beep(1180, .35); buzz([120, 80, 120]); goStep(P_.i + 1); }
   }
 }
 function updateCounter() {
-  const c = P_.root.querySelector(".big"); if (!c) return;
+  const r = P_ && P_.root.querySelector(".ring"); if (!r) return;
   const s = P_.steps[P_.i];
-  if (s.type === "reps") return;
-  const v = Math.max(0, Math.ceil(P_.left));
-  c.firstChild.nodeValue = v >= 60 ? Math.floor(v / 60) + ":" + String(v % 60).padStart(2, "0") : String(v);
+  let frac = 1;
+  if (s.type !== "reps") {
+    const v = Math.max(0, Math.ceil(P_.left));
+    r.querySelector("b").textContent = v >= 60 ? Math.floor(v / 60) + ":" + String(v % 60).padStart(2, "0") : String(v);
+    frac = Math.max(0, P_.left) / (P_.phase === "prep" ? 5 : s.v);
+  }
+  r.querySelector(".val").style.strokeDashoffset = String(RING_C * (1 - frac));
 }
 function renderPlayer(newFig) {
   const s = P_.steps[P_.i], ex = EX[s.id], total = P_.steps.length;
   const r = P_.root;
-  let figHost = r.querySelector(".p-fig");
-  const keepFig = !newFig && figHost;
-  const fig = keepFig ? figHost : h("div", { class: "p-fig" }, makeFig(s.id, s.mirror));
+  const old = r.querySelector(".p-fig");
+  const fig = (!newFig && old) ? old : h("div", { class: "p-fig" }, makeFig(s.id, s.mirror), s.side ? h("span", { class: "side" }, s.side) : null);
+  if (fig !== old) {
+    let x0 = null;
+    fig.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+    fig.addEventListener("touchend", e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (dx < -60) goStep(P_.i + 1); else if (dx > 60) goStep(P_.i - 1); });
+  }
   const nxt = P_.steps[P_.i + 1];
-  let counter;
-  if (s.type === "reps") counter = h("div", { class: "big" }, "× " + s.v, h("small", {}, "kartų" + (s.side ? " šia koja" : "")));
-  else counter = h("div", { class: "big" + (P_.phase === "prep" ? " prep" : "") }, "0", h("small", {}, P_.phase === "prep" ? "pasiruošk" : (s.type === "hold" ? "laikyk" : "judėk")));
-  const mainBtn = s.type === "reps"
-    ? h("button", { class: "btn", on: { click: () => { beep(990, .2); goStep(P_.i + 1); } } }, "Atlikta ✓")
-    : h("button", { class: "btn", on: { click: () => { P_.paused = !P_.paused; P_.last = performance.now(); renderPlayer(false); } } }, P_.paused ? "▶ Tęsti" : "❚❚ Pauzė");
+  const reps = s.type === "reps";
+  const ringSvg = document.createElementNS(NS, "svg"); ringSvg.setAttribute("viewBox", "0 0 120 120");
+  ringSvg.innerHTML = `<circle class="trk" cx="60" cy="60" r="52"/><circle class="val" cx="60" cy="60" r="52" stroke-dasharray="${RING_C.toFixed(1)}" stroke-dashoffset="0"/>`;
+  const ring = h("div", { class: "ring" + (reps ? " reps" : P_.phase === "prep" ? " prep" : "") }, ringSvg,
+    h("div", { class: "lbl", "aria-live": "off" }, h("b", {}, reps ? "×" + s.v : "0"), h("small", {}, reps ? "kartų" : P_.phase === "prep" ? "pasiruošk" : s.type === "hold" ? "laikyk" : "judėk")));
+  const segs = h("div", { class: "segs", "aria-label": "Pratimas " + (P_.i + 1) + " iš " + total });
+  for (let k = 0; k < total; k++) segs.append(h("i", { class: k < P_.i ? "d" : k === P_.i ? "c" : "" }));
+  const mainBtn = reps
+    ? h("button", { class: "main done", "aria-label": "Atlikta", on: { click: () => { beep(990, .2); buzz(60); goStep(P_.i + 1); } } }, icon("check"))
+    : h("button", { class: "main", "aria-label": P_.paused ? "Tęsti" : "Pauzė", on: { click: () => { P_.paused = !P_.paused; P_.last = performance.now(); renderPlayer(false); } } }, icon(P_.paused ? "play" : "pause"));
   r.replaceChildren(h("div", { class: "p-in" },
     h("div", { class: "p-top" },
-      h("button", { class: "x", "aria-label": "Uždaryti", on: { click: closePlayer } }, "✕"),
-      h("div", { class: "meter" }, h("i", { style: "width:" + (P_.i / total * 100) + "%" })),
-      h("span", { class: "muted num", style: "font-size:.85rem" }, (P_.i + 1) + "/" + total)),
+      h("button", { class: "iconbtn", "aria-label": "Uždaryti", on: { click: closePlayer } }, icon("close")),
+      segs,
+      h("button", { class: "iconbtn", "aria-label": store.settings.sound ? "Išjungti garsą" : "Įjungti garsą", on: { click: () => { store.settings.sound = !store.settings.sound; save(); renderPlayer(false); } } }, icon(store.settings.sound ? "sound" : "mute"))),
     fig,
-    h("div", { class: "p-name" }, s.side ? h("span", { class: "side" }, s.side) : null, h("h2", {}, ex.n), h("p", { class: "p-desc" }, ex.d)),
-    counter,
+    h("div", { class: "p-mid" },
+      h("div", { class: "p-name" }, h("p", { class: "eyebrow num" }, (P_.i + 1) + " / " + total), h("h2", {}, ex.n), h("p", { class: "p-desc" }, ex.d)),
+      ring),
     h("div", { class: "ctrl" },
-      h("button", { class: "round", "aria-label": "Ankstesnis", on: { click: () => goStep(P_.i - 1) } }, "‹"),
+      h("button", { class: "sm", "aria-label": "Ankstesnis", on: { click: () => goStep(P_.i - 1) } }, icon("prev")),
       mainBtn,
-      h("button", { class: "round", "aria-label": "Praleisti", on: { click: () => goStep(P_.i + 1) } }, "›")),
-    h("p", { class: "next-up" }, nxt ? "Toliau: " + EX[nxt.id].n + (nxt.side ? " (" + nxt.side.toLowerCase() + ")" : "") : "Paskutinis pratimas")));
+      h("button", { class: "sm", "aria-label": "Praleisti", on: { click: () => goStep(P_.i + 1) } }, icon("next"))),
+    h("p", { class: "next-up" }, nxt ? "Toliau: " + EX[nxt.id].n + (nxt.side ? " · " + nxt.side.toLowerCase() : "") : "Paskutinis pratimas")));
   updateCounter();
 }
 function finish() {
   P_.phase = "fin";
-  store.done[P_.n] = Date.now(); save();
+  const n = P_.n, min = Math.max(1, Math.round((Date.now() - P_.start) / 60000));
+  store.done[n] = Date.now();
+  const entry = { n, ts: Date.now(), min, feel: null };
+  store.log.push(entry); save();
   beep(880, .15); setTimeout(() => beep(1320, .3), 180); buzz([100, 60, 100, 60, 200]);
-  const n = P_.n;
+  const feel = h("div", { class: "feel", role: "group", "aria-label": "Kaip sekėsi" },
+    [["l", "Lengva"], ["g", "Gerai"], ["s", "Sunku"]].map(([k, l]) => h("button", { "aria-pressed": "false", on: { click: e => {
+      entry.feel = k; save(); feel.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === e.currentTarget)));
+    } } }, l)));
   P_.root.replaceChildren(h("div", { class: "p-in" }, h("div", { class: "fin" },
-    h("div", { class: "big" }, "✓"),
-    h("h1", {}, "Diena " + n + " atlikta"),
-    h("p", { class: "muted" }, n < 28 ? "Puiku. Rytoj laukia diena " + (n + 1) + ": " + TYPES[DAYS[n].type].n.toLowerCase() + "." : "Programa baigta! Pakartok 4 savaitę ir stebėk pažangą."),
-    h("button", { class: "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Į programą"))));
+    h("div", { class: "badge" }, icon("check")),
+    h("div", {}, h("h1", {}, "Diena " + n + " atlikta"),
+      h("p", { class: "muted", style: "margin-top:6px" }, min + " min · " + P_.steps.length + " pratimai · serija " + streak() + " d.")),
+    h("p", { class: "eyebrow" }, "Kaip sekėsi?"), feel,
+    h("p", { class: "muted" }, n < 28 ? "Kitą kartą: diena " + (n + 1) + ", " + TYPES[DAYS[n].type].n.toLowerCase() + "." : "Programa baigta! Kartok ją su didesniu sunkumu."),
+    h("button", { class: "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Baigti"))));
 }
 
 route();
