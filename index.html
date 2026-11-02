@@ -139,7 +139,7 @@ svg.fig{display:block;width:100%;height:auto}
 .sticky .in{max-width:560px;width:100%;display:flex;gap:10px}
 .sticky .in .btn:first-child{flex:1}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--nav);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 .nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.72rem;font-weight:700;color:var(--muted)}
 .nav button[aria-current="page"]{color:var(--accent)}
 .nav button .ico{width:24px;height:24px}
@@ -247,6 +247,58 @@ svg.fig{display:block;width:100%;height:auto}
 .heat.h8{grid-template-columns:repeat(8,1fr)}
 .nextq{display:flex;flex-direction:column;gap:10px;text-align:left;margin-top:6px}
 .fin{justify-content:flex-start;padding-top:12px}
+/* health */
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:.88rem}
+.field input,input.mini{font:inherit;font-size:1.05rem;font-weight:600;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;width:100%}
+input.mini{width:96px;padding:8px 10px;text-align:right;flex:none}
+.field input:focus,input.mini:focus{outline:none;border-color:var(--accent)}
+.err{color:var(--warn);font-size:.88rem;font-weight:600}
+.fcol{display:flex;flex-direction:column;gap:14px}
+.seg.wide{display:flex;width:100%}
+.seg.wide button{flex:1;padding:9px 4px}
+.chips.wrapc{flex-wrap:wrap;overflow:visible}
+.ask{display:flex;flex-direction:column;gap:8px}
+.doseq{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:14px;padding:10px 10px 10px 14px}
+.doseq .t{display:flex;flex-direction:column;min-width:0}
+.doseq .t small{color:var(--muted);font-size:.8rem}
+.yn{display:flex;gap:6px;flex:none}
+.yn button{border:0;border-radius:11px;padding:8px 11px;font-weight:700;font-size:.85rem;background:var(--surface);color:var(--muted);display:inline-flex;align-items:center;gap:4px;box-shadow:var(--shadow)}
+.yn button .ico{width:15px;height:15px}
+.yn .y.on{background:var(--good);color:#fff}
+.yn .n.on{background:var(--warn);color:#fff}
+.ask-card{box-shadow:0 0 0 2px var(--accent) inset,var(--shadow)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.remind{border:0;width:100%;text-align:left;background:var(--accent-soft);color:var(--ink);border-radius:18px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.remind div{display:flex;flex-direction:column}
+.remind small{color:var(--muted);font-size:.85rem}
+.remind .ico{color:var(--accent)}
+.bign{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.bign b{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1}
+.bign>span{color:var(--muted);font-weight:700}
+.delta{font-size:.82rem;font-weight:700;padding:3px 9px;border-radius:99px;margin-left:6px}
+.delta.dn{background:var(--good-soft);color:var(--good)}
+.delta.up{background:var(--warn-soft);color:var(--warn)}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .goal{stroke:var(--good);stroke-width:1.5;stroke-dasharray:4 4}
+.chart .ax{fill:var(--muted);font-size:10px;font-family:var(--body);font-variant-numeric:tabular-nums}
+.chart .lv{fill:var(--ink);font-size:12px;font-weight:700;font-family:var(--body)}
+.chart .line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .area{fill:var(--accent);opacity:.08}
+.chart .pt{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.chart .cross{stroke:var(--muted);stroke-width:1}
+.tip{position:absolute;top:0;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:.78rem;font-weight:700;padding:4px 8px;border-radius:8px;white-space:nowrap;pointer-events:none}
+.meter.k>i{background:var(--accent)}
+.meter.k.over>i{background:var(--warn)}
+.meal{display:flex;flex-direction:column;padding-top:6px}
+.rr{display:inline-flex;align-items:center;gap:8px}
+.del{border:0;background:none;color:var(--muted);padding:4px;display:inline-flex}
+.del .ico{width:16px;height:16px}
+.medrow{border:0;background:none;width:100%;text-align:left;color:var(--ink);font:inherit}
+.medrow .ico{color:var(--muted);width:18px;height:18px}
+.danger{color:var(--warn)}
+.sheet .iconbtn{box-shadow:none;background:var(--bg)}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{font-size:.86rem}.ctrl .main{width:64px;height:64px}.ring .lbl small{font-size:.58rem;letter-spacing:.04em}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -508,10 +560,11 @@ requestAnimationFrame(loop);
 /* ---------- Saugojimas ---------- */
 const KEY = "spagatas.v3";
 const DEF_SET = { sound: true, vib: true, level: 1 };
-let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET) };
+const DEF_HEALTH = () => ({ profile: { goal: null, kcal: 2000 }, weights: [], food: {}, meds: [], medsAsked: false, taken: {} });
+let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET), health: DEF_HEALTH() };
 try {
   const s = JSON.parse(localStorage.getItem(KEY));
-  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}) };
+  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}), health: Object.assign(DEF_HEALTH(), s.health || {}) };
   else { const o = JSON.parse(localStorage.getItem("spagatas.v2")) || JSON.parse(localStorage.getItem("spagatas.v1")); if (o) { store.lvl = o.lvl || null; store.assess = o.assess || null; store.settings = Object.assign({}, DEF_SET, o.settings || {}); } }
 } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
@@ -603,6 +656,7 @@ const catOf = id => (CATS.find(c => c[2].includes(id)) || CATS[0])[1];
 
 /* ---------- Ikonos ---------- */
 const ICONS = {
+  heart: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z",
   home: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   chart: "M5 20V11M12 20V4M19 20v-6",
@@ -645,6 +699,7 @@ function route() {
   if (m && +m[2] >= 1 && +m[2] <= SESS) return renderSession(m[1], +m[2]);
   if (location.hash === "#pratimai") return renderLib();
   if (location.hash === "#pazanga") return renderProgress();
+  if (location.hash === "#sveikata") return renderHealth();
   renderHome();
 }
 window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
@@ -655,7 +710,7 @@ function shell(view, ...content) {
 function nav(view) {
   const b = (v, hash, ic, label) => h("button", { "aria-current": view === v ? "page" : null, on: { click: () => go(hash) } }, icon(ic), label);
   return h("nav", { class: "nav", "aria-label": "Pagrindinis meniu" }, h("div", { class: "in" },
-    b("home", "", "home", "Šiandien"), b("lib", "pratimai", "grid", "Pratimai"), b("prog", "pazanga", "chart", "Pažanga")));
+    b("home", "", "home", "Šiandien"), b("lib", "pratimai", "grid", "Pratimai"), b("health", "sveikata", "heart", "Sveikata"), b("prog", "pazanga", "chart", "Pažanga")));
 }
 function statsRow() {
   const st = streak();
@@ -686,6 +741,7 @@ function renderHome() {
       h("div", {}, h("p", { class: "eyebrow" }, date), h("h1", {}, "Špagato kelias"),
         h("button", { class: "lvchip", on: { click: openAssess } }, "Lygis: " + LV[store.lvl || "mid"].n, icon("next"))),
       h("span", { class: "streak", title: "Dienos iš eilės" }, icon("flame"), String(st))),
+    ...homeReminders(),
     h("div", { class: "sec-h" }, h("h2", {}, "Ką šiandien darysi?"), h("span", { class: "muted", style: "font-size:.85rem" }, "Pasirink kryptį")),
     h("div", { class: "tracks" }, TRACK_IDS.map(t => trackCard(t, { doneNow: todayDone.has(t) }))),
     statsRow(),
@@ -772,6 +828,239 @@ function renderProgress() {
 }
 
 /* ---------- Pratimo kortelė ---------- */
+/* ---------- Sveikata: svoris, kalorijos, vaistai ---------- */
+const MEALS = { b: "Pusryčiai", l: "Pietūs", d: "Vakarienė", s: "Užkandis" };
+const MEAL_HOUR = { b: 6, l: 12, d: 17 };
+const WHEN = { before: "Prieš valgį", after: "Po valgio" };
+const H_ = () => store.health;
+const iso = (d = new Date()) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const fromIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const daysBetween = (a, b) => Math.round((fromIso(b) - fromIso(a)) / 864e5);
+const fmtDate = s => fromIso(s).toLocaleDateString("lt-LT", { month: "short", day: "numeric" });
+const kg = v => v.toFixed(1).replace(".", ",");
+const uid = () => Math.random().toString(36).slice(2, 9);
+function sortedWeights() { return H_().weights.slice().sort((a, b) => a.d < b.d ? -1 : 1); }
+function weightDue() {
+  const w = sortedWeights(); if (!w.length) return { due: true, days: null };
+  const ago = daysBetween(w[w.length - 1].d, iso());
+  return { due: ago >= 7, days: 7 - ago };
+}
+function guessMeal() { const hr = new Date().getHours(); return hr < 11 ? "b" : hr < 16 ? "l" : hr < 21 ? "d" : "s"; }
+/* šiandienos vaistų dozės: vaistas × valgis */
+function doses(day = iso()) {
+  const out = [], taken = H_().taken[day] || {};
+  for (const m of H_().meds) for (const ml of m.meals) out.push({ med: m, meal: ml, key: m.id + ":" + ml, st: taken[m.id + ":" + ml] || null });
+  return out.sort((a, b) => "bld".indexOf(a.meal) - "bld".indexOf(b.meal) || (a.med.when === "before" ? -1 : 1));
+}
+function dueDoses() { const hr = new Date().getHours(); return doses().filter(x => !x.st && hr >= MEAL_HOUR[x.meal]); }
+function markDose(key, st) { const t = H_().taken; (t[iso()] = t[iso()] || {})[key] = st; save(); }
+const dayKcal = (day = iso()) => (H_().food[day] || []).reduce((s, f) => s + f.kcal, 0);
+
+/* bendras apatinis langas */
+function openPanel(title, ...content) {
+  closeSheet();
+  sheetEl = h("div", { class: "scrim", on: { click: e => { if (e.target === sheetEl) closeSheet(); } } },
+    h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": title },
+      h("div", { class: "grab" }),
+      h("div", { class: "sec-h" }, h("h2", {}, title), h("button", { class: "iconbtn", "aria-label": "Uždaryti", on: { click: closeSheet } }, icon("close"))),
+      ...content));
+  document.body.append(sheetEl);
+  document.addEventListener("keydown", sheetKey);
+  const f = sheetEl.querySelector("input"); if (f) setTimeout(() => f.focus(), 250);
+}
+const field = (label, input) => h("label", { class: "field" }, h("span", {}, label), input);
+const refresh = () => { closeSheet(); route(); };
+
+/* klausimas apie vaistą */
+function doseQ(x, after) {
+  const row = h("div", { class: "doseq" },
+    h("div", { class: "t" }, h("b", {}, x.med.name), h("small", {}, WHEN[x.med.when] + " · " + MEALS[x.meal].toLowerCase())),
+    h("div", { class: "yn" },
+      h("button", { class: "y" + (x.st === "y" ? " on" : ""), on: { click: () => { markDose(x.key, "y"); x.st = "y"; after ? after() : row.replaceWith(doseQ(x, after)); } } }, icon("check"), "Išgėriau"),
+      h("button", { class: "n" + (x.st === "n" ? " on" : ""), on: { click: () => { markDose(x.key, "n"); x.st = "n"; after ? after() : row.replaceWith(doseQ(x, after)); } } }, "Ne")));
+  return row;
+}
+
+/* svoris */
+function openWeight() {
+  const last = sortedWeights().pop();
+  const inp = h("input", { id: "w-kg", type: "number", inputmode: "decimal", step: "0.1", min: "20", max: "300", placeholder: last ? String(last.kg) : "pvz. 72.5" });
+  const date = h("input", { id: "w-date", type: "date", value: iso(), max: iso() });
+  const err = h("p", { class: "err", hidden: "" });
+  openPanel("Įrašyti svorį",
+    h("p", { class: "muted" }, "Svarbiausia sverkis tuo pačiu metu, pvz., pirmadienio rytą prieš pusryčius."),
+    field("Svoris (kg)", inp), field("Data", date), err,
+    h("button", { class: "btn block", on: { click: () => {
+      const v = parseFloat(String(inp.value).replace(",", "."));
+      if (!(v >= 20 && v <= 300)) { err.textContent = "Įvesk svorį kilogramais, pvz. 72,5."; err.hidden = false; return; }
+      const d = date.value || iso();
+      H_().weights = H_().weights.filter(w => w.d !== d).concat({ d, kg: Math.round(v * 10) / 10 }); save(); refresh();
+    } } }, "Išsaugoti"));
+}
+function weightChart(ws, goal) {
+  const W = 320, Hh = 150, L = 36, R = 12, T = 14, B = 24;
+  const vals = ws.map(w => w.kg).concat(goal ? [goal] : []);
+  let lo = Math.floor(Math.min(...vals) - 1), hi = Math.ceil(Math.max(...vals) + 1);
+  const t0 = fromIso(ws[0].d).getTime(), t1 = Math.max(fromIso(ws[ws.length - 1].d).getTime(), t0 + 864e5);
+  const x = d => L + (fromIso(d).getTime() - t0) / (t1 - t0) * (W - L - R);
+  const y = v => T + (hi - v) / (hi - lo) * (Hh - T - B);
+  const step = Math.max(1, Math.ceil((hi - lo) / 3));
+  let g = "";
+  for (let v = lo; v <= hi; v += step) g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  if (goal) g += `<line class="goal" x1="${L}" x2="${W - R}" y1="${y(goal)}" y2="${y(goal)}"/><text class="ax" x="${W - R}" y="${y(goal) - 5}" text-anchor="end">tikslas ${kg(goal)}</text>`;
+  g += `<text class="ax" x="${L}" y="${Hh - 6}">${fmtDate(ws[0].d)}</text><text class="ax" x="${W - R}" y="${Hh - 6}" text-anchor="end">${fmtDate(ws[ws.length - 1].d)}</text>`;
+  const pts = ws.map(w => [x(w.d), y(w.kg)]);
+  const area = `M${pts[0][0]},${Hh - B} ` + pts.map(p => "L" + p.join(",")).join(" ") + ` L${pts[pts.length - 1][0]},${Hh - B}Z`;
+  g += `<path class="area" d="${area}"/><polyline class="line" points="${pts.map(p => p.join(",")).join(" ")}"/>`;
+  pts.forEach((p, i) => { g += `<circle class="pt${i === pts.length - 1 ? " last" : ""}" cx="${p[0]}" cy="${p[1]}" r="${i === pts.length - 1 ? 5 : 4}"/>`; });
+  const lp = pts[pts.length - 1];
+  g += `<text class="lv" x="${Math.min(lp[0], W - R - 4)}" y="${lp[1] - 10}" text-anchor="end">${kg(ws[ws.length - 1].kg)}</text>`;
+  g += `<line class="cross" x1="0" x2="0" y1="${T}" y2="${Hh - B}" visibility="hidden"/>`;
+  const wrap = h("div", { class: "chart" });
+  wrap.innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Svorio kitimas">${g}</svg>`;
+  const tip = h("div", { class: "tip", hidden: "" }); wrap.append(tip);
+  const svg = wrap.firstChild, cross = svg.querySelector(".cross");
+  const move = e => {
+    const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W;
+    let bi = 0; pts.forEach((p, i) => { if (Math.abs(p[0] - px) < Math.abs(pts[bi][0] - px)) bi = i; });
+    cross.setAttribute("x1", pts[bi][0]); cross.setAttribute("x2", pts[bi][0]); cross.setAttribute("visibility", "visible");
+    tip.textContent = fmtDate(ws[bi].d) + " · " + kg(ws[bi].kg) + " kg"; tip.hidden = false;
+    tip.style.left = Math.min(Math.max(pts[bi][0] / W * 100, 15), 85) + "%";
+  };
+  svg.addEventListener("pointermove", move); svg.addEventListener("pointerdown", move);
+  svg.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); });
+  return wrap;
+}
+
+/* maistas */
+function openFood(meal) {
+  meal = meal || guessMeal();
+  const box = h("div", { class: "fcol" });
+  const draw = () => {
+    const before = meal !== "s" ? doses().filter(x => x.meal === meal && x.med.when === "before") : [];
+    const name = h("input", { id: "f-name", type: "text", placeholder: "pvz. Avižinė košė", autocomplete: "off" });
+    const kc = h("input", { id: "f-kcal", type: "number", inputmode: "numeric", min: "1", max: "5000", placeholder: "kcal" });
+    const err = h("p", { class: "err", hidden: "" });
+    box.replaceChildren(
+      h("div", { class: "seg wide", role: "group", "aria-label": "Valgis" }, Object.keys(MEALS).map(k => h("button", { "aria-pressed": meal === k, on: { click: () => { meal = k; draw(); } } }, MEALS[k]))),
+      before.length ? h("div", { class: "ask" }, h("p", { class: "eyebrow" }, "Prieš valgį"), before.map(x => doseQ(x))) : null,
+      field("Ką valgei", name), field("Kalorijos (kcal)", kc), err,
+      h("button", { class: "btn block", on: { click: () => {
+        const v = parseInt(kc.value, 10);
+        if (!name.value.trim()) { err.textContent = "Įrašyk, ką valgei."; err.hidden = false; return; }
+        if (!(v > 0 && v < 5000)) { err.textContent = "Įrašyk kalorijas skaičiumi, pvz. 350."; err.hidden = false; return; }
+        const f = H_().food; (f[iso()] = f[iso()] || []).push({ id: uid(), meal, name: name.value.trim(), kcal: v }); save();
+        const after = meal !== "s" ? doses().filter(x => x.meal === meal && x.med.when === "after" && !x.st) : [];
+        if (after.length) {
+          openPanel("Po valgio", h("p", { class: "muted" }, "Įrašyta: " + name.value.trim() + ", " + v + " kcal. Nepamiršk vaistų po valgio."),
+            h("div", { class: "ask" }, after.map(x => doseQ(x))),
+            h("button", { class: "btn ghost block", on: { click: refresh } }, "Uždaryti"));
+        } else refresh();
+      } } }, "Pridėti"));
+  };
+  draw();
+  openPanel("Pridėti maistą", box);
+}
+
+/* vaistai */
+function openMed(med) {
+  const m = med ? Object.assign({}, med, { meals: med.meals.slice() }) : { id: uid(), name: "", when: "before", meals: ["b"] };
+  const box = h("div", { class: "fcol" });
+  const draw = () => {
+    const name = h("input", { id: "m-name", type: "text", value: m.name, placeholder: "Vaisto pavadinimas", autocomplete: "off", on: { input: e => { m.name = e.target.value; } } });
+    const err = h("p", { class: "err", hidden: "" });
+    box.replaceChildren(
+      field("Pavadinimas", name),
+      h("p", { class: "eyebrow" }, "Kada geri?"),
+      h("div", { class: "seg wide", role: "group" }, Object.keys(WHEN).map(k => h("button", { "aria-pressed": m.when === k, on: { click: () => { m.when = k; draw(); } } }, WHEN[k]))),
+      h("p", { class: "eyebrow" }, "Su kuriais valgiais?"),
+      h("div", { class: "chips wrapc" }, ["b", "l", "d"].map(k => h("button", { "aria-pressed": m.meals.includes(k), on: { click: () => { m.meals = m.meals.includes(k) ? m.meals.filter(x => x !== k) : m.meals.concat(k); draw(); } } }, MEALS[k]))),
+      err,
+      h("button", { class: "btn block", on: { click: () => {
+        if (!m.name.trim()) { err.textContent = "Įrašyk vaisto pavadinimą."; err.hidden = false; return; }
+        if (!m.meals.length) { err.textContent = "Pasirink bent vieną valgį."; err.hidden = false; return; }
+        m.name = m.name.trim(); H_().meds = H_().meds.filter(x => x.id !== m.id).concat(m); H_().medsAsked = true; save(); refresh();
+      } } }, med ? "Išsaugoti" : "Pridėti vaistą"),
+      med ? h("button", { class: "btn ghost block danger", on: { click: e => {
+        const b = e.currentTarget; if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = "Spausk dar kartą, kad ištrintum"; return; }
+        H_().meds = H_().meds.filter(x => x.id !== m.id); save(); refresh();
+      } } }, "Ištrinti vaistą") : null);
+  };
+  draw();
+  openPanel(med ? "Redaguoti vaistą" : "Naujas vaistas", box);
+}
+function medsQuestion() {
+  return h("section", { class: "panel ask-card" },
+    h("p", { class: "eyebrow" }, "Klausimas"),
+    h("h3", {}, "Ar geri kokius nors vaistus prieš ar po valgio?"),
+    h("p", { class: "muted", style: "font-size:.9rem" }, "Jei taip, programėlė kasdien paklaus, ar juos išgėrei."),
+    h("div", { class: "row2" },
+      h("button", { class: "btn", on: { click: () => openMed() } }, "Taip, pridėti"),
+      h("button", { class: "btn ghost", on: { click: () => { H_().medsAsked = true; save(); route(); } } }, "Ne, negeriu")));
+}
+
+/* skiltis „Sveikata“ */
+function renderHealth() {
+  const ws = sortedWeights(), last = ws[ws.length - 1], prev = ws[ws.length - 2], wd = weightDue(), hp = H_().profile;
+  const goalInp = h("input", { id: "w-goal", type: "number", inputmode: "decimal", step: "0.1", value: hp.goal || "", placeholder: "kg", class: "mini",
+    on: { change: e => { const v = parseFloat(String(e.target.value).replace(",", ".")); hp.goal = v >= 20 && v <= 300 ? v : null; save(); renderHealth(); } } });
+  const kcalInp = h("input", { id: "k-goal", type: "number", inputmode: "numeric", step: "50", value: hp.kcal, class: "mini",
+    on: { change: e => { const v = parseInt(e.target.value, 10); if (v >= 800 && v <= 6000) { hp.kcal = v; save(); } renderHealth(); } } });
+  const total = dayKcal(), pct = Math.min(100, total / hp.kcal * 100), food = H_().food[iso()] || [];
+  const ds = doses();
+  const weight = h("section", { class: "panel" },
+    h("div", { class: "sec-h" }, h("h3", {}, "Svoris"), h("span", { class: "tag" + (wd.due ? " s" : " l") }, wd.due ? "Laikas pasisverti" : "Kitas po " + wd.days + " d.")),
+    last ? h("div", { class: "bign" }, h("b", { class: "num" }, kg(last.kg)), h("span", {}, "kg"),
+      prev ? h("span", { class: "delta" + (last.kg <= prev.kg ? " dn" : " up") }, (last.kg - prev.kg > 0 ? "+" : "") + kg(last.kg - prev.kg) + " kg per savaitę") : null)
+      : h("p", { class: "muted" }, "Dar neįrašei svorio. Sverkis kartą per savaitę, tuo pačiu metu."),
+    ws.length >= 2 ? weightChart(ws, hp.goal) : null,
+    h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Tikslo svoris"), h("small", {}, hp.goal && last ? "Liko " + kg(Math.abs(last.kg - hp.goal)) + " kg" : "Neprivaloma")), goalInp),
+    ws.length ? h("div", { class: "hist" }, ws.slice(-5).reverse().map(w => h("div", { class: "r" }, h("span", {}, fmtDate(w.d)), h("b", { class: "num" }, kg(w.kg) + " kg")))) : null,
+    h("button", { class: "btn" + (wd.due ? "" : " ghost") + " block", on: { click: openWeight } }, "Įrašyti svorį"));
+  const kcal = h("section", { class: "panel" },
+    h("div", { class: "sec-h" }, h("h3", {}, "Kalorijos šiandien"), h("span", { class: "muted num" }, total + " / " + hp.kcal + " kcal")),
+    h("div", { class: "meter k" + (total > hp.kcal ? " over" : "") }, h("i", { style: "width:" + pct + "%" })),
+    h("p", { class: "muted num", style: "font-size:.88rem" }, total > hp.kcal ? "Viršyta " + (total - hp.kcal) + " kcal" : "Liko " + (hp.kcal - total) + " kcal"),
+    food.length ? h("div", { class: "hist" }, Object.keys(MEALS).filter(k => food.some(f => f.meal === k)).map(k => h("div", { class: "meal" },
+      h("p", { class: "eyebrow" }, MEALS[k] + " · " + food.filter(f => f.meal === k).reduce((s, f) => s + f.kcal, 0) + " kcal"),
+      food.filter(f => f.meal === k).map(f => h("div", { class: "r" }, h("span", {}, f.name),
+        h("span", { class: "rr" }, h("b", { class: "num" }, f.kcal + " kcal"), h("button", { class: "del", "aria-label": "Ištrinti " + f.name, on: { click: () => { H_().food[iso()] = food.filter(x => x.id !== f.id); save(); renderHealth(); } } }, icon("close"))))))))
+      : h("p", { class: "muted" }, "Šiandien dar nieko neįrašei."),
+    h("p", { class: "muted", style: "font-size:.82rem" }, "Vakar: " + dayKcal(iso(new Date(Date.now() - 864e5))) + " kcal"),
+    h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Dienos tikslas"), h("small", {}, "kcal per dieną")), kcalInp),
+    h("button", { class: "btn block", on: { click: () => openFood() } }, "+ Pridėti maistą"));
+  const meds = H_().meds.length ? h("section", { class: "panel" },
+    h("div", { class: "sec-h" }, h("h3", {}, "Vaistai šiandien"), h("span", { class: "muted num" }, ds.filter(x => x.st === "y").length + " / " + ds.length + " išgerta")),
+    h("div", { class: "ask" }, ds.map(x => doseQ(x, renderHealth))),
+    h("p", { class: "eyebrow", style: "margin-top:4px" }, "Mano vaistai"),
+    h("div", { class: "hist" }, H_().meds.map(m => h("button", { class: "r medrow", on: { click: () => openMed(m) } },
+      h("span", {}, h("b", {}, m.name), h("small", { class: "muted" }, " · " + WHEN[m.when].toLowerCase() + ": " + m.meals.map(k => MEALS[k].toLowerCase()).join(", "))), icon("next")))),
+    h("button", { class: "btn ghost block", on: { click: () => openMed() } }, "+ Pridėti vaistą"))
+    : (H_().medsAsked ? h("section", { class: "panel" }, h("h3", {}, "Vaistai"), h("p", { class: "muted" }, "Vaistų nepridėta."), h("button", { class: "btn ghost block", on: { click: () => openMed() } }, "+ Pridėti vaistą")) : medsQuestion());
+  shell("health",
+    h("header", {}, h("p", { class: "eyebrow" }, new Date().toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" })), h("h1", {}, "Sveikata")),
+    meds, weight, kcal,
+    h("p", { class: "muted", style: "font-size:.8rem" }, "Duomenys saugomi tik šiame telefone, šioje naršyklėje. Programėlė negali siųsti pranešimų, kai ji uždaryta, todėl klausia, kai ją atsidarai."));
+}
+
+/* priminimai pradžios ekrane ir atsidarius programėlę */
+function homeReminders() {
+  const out = [], wd = weightDue(), due = dueDoses();
+  if (!H_().medsAsked) out.push(medsQuestion());
+  if (due.length) out.push(h("section", { class: "panel ask-card" }, h("p", { class: "eyebrow" }, "Vaistai"), h("h3", {}, "Ar išgėrei vaistus?"),
+    h("div", { class: "ask" }, due.map(x => doseQ(x, () => route())))));
+  if (wd.due) out.push(h("button", { class: "remind", on: { click: openWeight } },
+    h("div", {}, h("b", {}, "Laikas pasisverti"), h("small", {}, wd.days === null ? "Įrašyk pradinį svorį" : "Praėjo savaitė nuo paskutinio svėrimo")), icon("next")));
+  return out;
+}
+let checkedIn = false;
+function checkIn() {
+  if (checkedIn || !store.lvl) return; checkedIn = true;
+  const due = dueDoses();
+  if (due.length) openPanel("Ar išgėrei vaistus?", h("p", { class: "muted" }, "Pažymėk, kuriuos vaistus jau išgėrei šiandien."),
+    h("div", { class: "ask" }, due.map(x => doseQ(x))), h("button", { class: "btn block", on: { click: refresh } }, "Gerai"));
+  else if (weightDue().due && sortedWeights().length) openWeight();
+}
 let sheetEl = null;
 function closeSheet() { if (sheetEl) { sheetEl.remove(); sheetEl = null; document.removeEventListener("keydown", sheetKey); } }
 const sheetKey = e => { if (e.key === "Escape") closeSheet(); };
@@ -808,7 +1097,7 @@ function openAssess() {
   document.body.append(A_.root); document.body.style.overflow = "hidden";
   renderAssess();
 }
-function closeAssess() { if (!A_) return; A_.root.remove(); A_ = null; document.body.style.overflow = ""; route(); }
+function closeAssess() { if (!A_) return; A_.root.remove(); A_ = null; document.body.style.overflow = ""; route(); checkIn(); }
 function setLevel(l, ans) { store.lvl = l; if (ans) store.assess = { ans, ts: Date.now() }; save(); rebuild(); }
 function renderAssess() {
   const r = A_.root, first = !store.lvl;
@@ -991,6 +1280,7 @@ function finish() {
 }
 
 route();
+checkIn();
 if (!store.lvl) { openAssess(); A_.i = -1; renderAssess(); }
 </script>
 </body>
