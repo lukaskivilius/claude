@@ -330,6 +330,13 @@ i.wt{width:6px;height:6px;transform:rotate(45deg);background:var(--accent);borde
 .legend2 span{display:inline-flex;align-items:center;gap:6px}
 .course{width:70px;height:6px;border-radius:9px;background:var(--surface-2);overflow:hidden;flex:none}
 .course i{display:block;height:100%;background:var(--accent)}
+.trows{display:flex;flex-direction:column;gap:8px}
+.trow2{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700}
+.trow2 input{font:inherit;font-size:1rem;font-weight:600;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;width:130px}
+.schedcard{border:0;width:100%;text-align:left;background:var(--surface);border-radius:20px;padding:14px 16px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--ink)}
+.schedcard div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.schedcard small{color:var(--muted);font-size:.82rem}
+.cd.pre{opacity:.55}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{font-size:.86rem}.ctrl .main{width:64px;height:64px}.ring .lbl small{font-size:.58rem;letter-spacing:.04em}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -775,7 +782,7 @@ function renderHome() {
         h("button", { class: "lvchip", on: { click: openAssess } }, "Lygis: " + LV[store.lvl || "mid"].n, icon("next"))),
       h("span", { class: "streak", title: "Dienos iš eilės" }, icon("flame"), String(st))),
     ...homeReminders(),
-    h("div", { class: "sec-h" }, h("h2", {}, "Ką šiandien darysi?"), h("span", { class: "muted", style: "font-size:.85rem" }, isTrainDay(iso()) ? "Šiandien treniruotė " + train().time : train() ? "Šiandien poilsio diena" : "Pasirink kryptį")),
+    h("div", { class: "sec-h" }, h("h2", {}, "Ką šiandien darysi?"), h("span", { class: "muted", style: "font-size:.85rem" }, isTrainDay(iso()) ? "Šiandien treniruotė " + trainTimeOn(iso()) : train() ? "Šiandien poilsio diena" : "Pasirink kryptį")),
     h("div", { class: "tracks" }, TRACK_IDS.map(t => trackCard(t, { doneNow: todayDone.has(t) }))),
     statsRow(),
     h("div", { class: "note" },
@@ -853,7 +860,6 @@ function renderProgress() {
       store.assess ? h("p", { class: "muted", style: "font-size:.82rem" }, "Testas atliktas " + new Date(store.assess.ts).toLocaleDateString("lt-LT", { month: "long", day: "numeric" }) + ". Pasitikrink kas 4 savaites.") : null,
       h("button", { class: "btn ghost block", on: { click: openAssess } }, "Pasitikrinti lankstumą iš naujo")),
     h("section", { class: "panel" }, h("h3", {}, "Nustatymai"),
-      h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Treniruočių grafikas"), h("small", {}, train() ? train().days.map(i => WD[i]).join(", ") + " · " + train().time : "Nenustatytas")), h("button", { class: "btn ghost", style: "padding:8px 14px", on: { click: openTrain } }, "Keisti")),
       sw("sound", "Garsas", "Pyptelėjimai skaičiuojant laiką"),
       sw("vib", "Vibracija", "Kai keičiasi pratimas (Android)"),
       h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Sunkumas"), h("small", {}, "Papildomai trumpina ar ilgina laiką")),
@@ -898,7 +904,7 @@ function doses(day = iso()) {
   return out.sort((a, b) => a.slot.due - b.slot.due || (a.med.when === "before" ? -1 : 1));
 }
 function dueDoses() { const n = nowMins(); return doses().filter(x => !x.st && n >= x.slot.due); }
-function markDose(key, st) { const t = H_().taken; (t[iso()] = t[iso()] || {})[key] = st; save(); }
+function markDose(key, st, day = iso()) { const t = H_().taken; (t[day] = t[day] || {})[key] = st; save(); }
 const dayKcal = (day = iso()) => (H_().food[day] || []).reduce((s, f) => s + f.kcal, 0);
 
 /* bendras apatinis langas */
@@ -918,9 +924,9 @@ const field = (label, input) => h("label", { class: "field" }, h("span", {}, lab
 const refresh = () => { closeSheet(); route(); };
 
 /* klausimas apie vaistą */
-function doseQ(x, after) {
+function doseQ(x, after, day) {
   const sub = (x.med.when === "before" || x.med.when === "after") ? WHEN[x.med.when] + " · " + x.slot.label : x.med.when === "sleep" ? "Prieš miegą · " + x.slot.label.replace("prieš miegą ", "") : "Laikas · " + x.slot.label;
-  const set = st => { markDose(x.key, st); x.st = st; after ? after() : row.replaceWith(doseQ(x, after)); };
+  const set = st => { markDose(x.key, st, day || iso()); x.st = st; after ? after() : row.replaceWith(doseQ(x, after, day)); };
   const row = h("div", { class: "doseq" },
     h("div", { class: "t" }, h("b", {}, x.med.name, x.med.kind === "vit" ? h("span", { class: "kind" }, "vit.") : null), h("small", {}, sub)),
     h("div", { class: "yn" },
@@ -1145,22 +1151,36 @@ function checkIn() {
 }
 /* ---------- Treniruočių grafikas ---------- */
 const WD = ["Pr", "An", "Tr", "Kt", "Pn", "Še", "Sk"];
+const WD_FULL = ["Pirmadienis", "Antradienis", "Trečiadienis", "Ketvirtadienis", "Penktadienis", "Šeštadienis", "Sekmadienis"];
 const wdOf = d => (d.getDay() + 6) % 7; /* 0 = pirmadienis */
-const train = () => store.settings.train || null;
-const isTrainDay = day => { const t = train(); return !!t && t.days.includes(wdOf(fromIso(day))); };
-function trainEditor(onSave, compact) {
-  const t = train() ? JSON.parse(JSON.stringify(train())) : { days: [0, 2, 4], time: "18:00" };
+function train() {
+  const t = store.settings.train; if (!t) return null;
+  if (Array.isArray(t.days)) { const m = {}; t.days.forEach(i => { m[i] = t.time || "18:00"; }); t.days = m; } /* senas formatas */
+  return t;
+}
+const trainTimeOn = day => { const t = train(); if (!t || (t.start && day < t.start)) return null; return t.days[wdOf(fromIso(day))] || null; };
+const isTrainDay = day => !!trainTimeOn(day);
+const schedText = t => Object.keys(t.days).map(Number).sort().map(i => WD[i] + " " + t.days[i]).join(", ");
+function firstUseDay() { const ts = store.log.map(l => l.ts).concat(Object.values(store.done)); return ts.length ? iso(new Date(Math.min(...ts))) : iso(); }
+function trainEditor(onSave) {
+  const t = train() ? JSON.parse(JSON.stringify(train())) : { days: { 0: "18:00", 2: "18:00", 4: "18:00" }, start: firstUseDay() };
+  t.start = t.start || firstUseDay();
   const box = h("div", { class: "fcol" });
+  let last = "18:00";
   const draw = () => {
     const err = h("p", { class: "err", hidden: "" });
-    rc(box, 
+    const sel = Object.keys(t.days).map(Number).sort();
+    rc(box,
       h("p", { class: "eyebrow" }, "Kuriomis dienomis?"),
-      h("div", { class: "wdays" }, WD.map((l, i) => h("button", { "aria-pressed": t.days.includes(i), "aria-label": l, on: { click: () => { t.days = t.days.includes(i) ? t.days.filter(x => x !== i) : t.days.concat(i).sort(); draw(); } } }, l))),
-      field("Kelintą valandą?", h("input", { id: "tr-time", type: "time", value: t.time, on: { change: e => { t.time = e.target.value || "18:00"; } } })),
-      h("p", { class: "muted", style: "font-size:.85rem" }, t.days.length + (t.days.length === 1 ? " treniruotė" : t.days.length < 10 && t.days.length > 0 ? " treniruotės" : " treniruočių") + " per savaitę. Lankstumui rekomenduojama 3–5."),
+      h("div", { class: "wdays" }, WD.map((l, i) => h("button", { "aria-pressed": t.days[i] != null, "aria-label": WD_FULL[i], on: { click: () => { if (t.days[i] != null) { last = t.days[i]; delete t.days[i]; } else t.days[i] = last; draw(); } } }, l))),
+      sel.length ? h("p", { class: "eyebrow" }, "Kelintą valandą?") : null,
+      sel.length ? h("div", { class: "trows" }, sel.map(i => h("label", { class: "trow2" }, h("span", {}, WD_FULL[i]),
+        h("input", { id: "tr-" + i, type: "time", value: t.days[i], on: { change: e => { t.days[i] = e.target.value || "18:00"; last = t.days[i]; } } })))) : null,
+      field("Nuo kada pradėjai siekti tikslų?", h("input", { id: "tr-start", type: "date", value: t.start, max: iso(), on: { change: e => { t.start = e.target.value || iso(); } } })),
+      h("p", { class: "muted", style: "font-size:.85rem" }, "Dienos iki šios datos kalendoriuje nebus rodomos kaip praleistos. " + sel.length + " d. per savaitę, lankstumui rekomenduojama 3–5."),
       err,
       h("button", { class: "btn block", on: { click: () => {
-        if (!t.days.length) { err.textContent = "Pasirink bent vieną dieną."; err.hidden = false; return; }
+        if (!Object.keys(t.days).length) { err.textContent = "Pasirink bent vieną dieną."; err.hidden = false; return; }
         store.settings.train = t; store.settings.trainAsked = true; save(); onSave();
       } } }, "Išsaugoti grafiką"));
   };
@@ -1175,20 +1195,36 @@ function trainQuestion() {
     trainEditor(() => route()),
     h("button", { class: "link", style: "align-self:center", on: { click: () => { store.settings.trainAsked = true; save(); route(); } } }, "Vėliau"));
 }
+/* praėjusios dienos treniruotės pažymėjimas */
+function openLogPast(day) {
+  openPanel("Pažymėti treniruotę", h("p", { class: "muted" }, fromIso(day).toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" }) + ". Kurią kryptį tą dieną atlikai?"),
+    h("div", { class: "fcol" }, TRACK_IDS.map(t => h("button", { class: "opt", on: { click: () => {
+      const n = nextSess(t), ts = fromIso(day).getTime() + 12 * 36e5;
+      store.done[dkeyOf(t, n)] = ts;
+      store.log.push({ track: t, n, ts, min: sessMinutes(sess(t, n)), feel: null, manual: true });
+      store.log.sort((a, b) => a.ts - b.ts); save(); refresh();
+    } } }, h("span", { class: "t2" }, h("b", {}, TRACKS[t].n), h("small", {}, TRACKS[t].sub + " · bus pažymėta treniruotė " + nextSess(t)))))));
+}
+function removeLog(l) {
+  store.log = store.log.filter(x => x !== l);
+  const k = dkeyOf(l.track, l.n);
+  if (store.done[k] && !store.log.some(x => x.track === l.track && x.n === l.n)) delete store.done[k];
+  save();
+}
 
 /* ---------- Kalendorius ---------- */
 let calMonth = null, calSel = null;
 function dayInfo(day) {
   const today = iso();
-  const tr = store.log.filter(l => dkey(l.ts) === dkey(fromIso(day).getTime() + 12 * 36e5));
-  const planned = isTrainDay(day);
+  const tr = store.log.filter(l => iso(new Date(l.ts)) === day);
+  const time = trainTimeOn(day);
   const ds = doses(day);
   const taken = ds.filter(x => x.st === "y").length;
   const w = H_().weights.find(x => x.d === day);
-  return { tr, planned, missed: planned && !tr.length && day < today, ds, taken, w, kcal: dayKcal(day) };
+  return { tr, planned: !!time, time, missed: !!time && !tr.length && day < today, ds, taken, w, kcal: dayKcal(day) };
 }
 function renderCal() {
-  const today = iso();
+  const today = iso(), t = train();
   if (!calMonth) { const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
   if (!calSel) calSel = today;
   const y = calMonth.getFullYear(), mo = calMonth.getMonth();
@@ -1204,19 +1240,20 @@ function renderCal() {
     else if (inf.planned) marks.append(h("i", { class: "tr" + (inf.missed ? " miss" : "") }));
     if (inf.ds.length) marks.append(h("i", { class: "md" + (day > today ? "" : inf.taken === inf.ds.length ? " ok" : inf.taken ? " part" : day < today ? " miss" : "") }));
     if (inf.w) marks.append(h("i", { class: "wt" }));
-    grid.append(h("button", { class: "cd" + (day === today ? " today" : "") + (day === calSel ? " sel" : ""), "aria-label": fmtDate(day), on: { click: () => { calSel = day; renderCal(); } } },
+    grid.append(h("button", { class: "cd" + (day === today ? " today" : "") + (day === calSel ? " sel" : "") + (t && t.start && day < t.start ? " pre" : ""), "aria-label": fmtDate(day), on: { click: () => { calSel = day; renderCal(); } } },
       h("span", { class: "dn num" }, String(d)), marks));
   }
-  const inf = dayInfo(calSel), t = train();
+  const inf = dayInfo(calSel), past = calSel <= today;
   const det = h("section", { class: "panel" },
     h("h3", {}, fromIso(calSel).toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" })),
     h("p", { class: "eyebrow" }, "Treniruotės"),
-    inf.tr.length ? h("div", { class: "hist" }, inf.tr.map(l => h("div", { class: "r" }, h("span", {}, TRACKS[l.track].n + " · " + (l.n === SESS ? "testas" : "treniruotė " + l.n)), h("span", { class: "tag l" }, l.min + " min"))))
-      : h("p", { class: "muted" }, inf.planned ? (inf.missed ? "Buvo suplanuota " + t.time + ", bet neatlikta." : "Suplanuota " + t.time + ".") : "Treniruotė nesuplanuota."),
+    inf.tr.length ? h("div", { class: "hist" }, inf.tr.map(l => h("div", { class: "r" }, h("span", {}, TRACKS[l.track].n + " · " + (l.n === SESS ? "testas" : "treniruotė " + l.n)),
+      h("span", { class: "rr" }, h("span", { class: "tag l" }, l.manual ? "pažymėta" : l.min + " min"), h("button", { class: "del", "aria-label": "Pašalinti", on: { click: () => { removeLog(l); renderCal(); } } }, icon("close"))))))
+      : h("p", { class: "muted" }, inf.planned ? (inf.missed ? "Buvo suplanuota " + inf.time + ", bet nepažymėta." : "Suplanuota " + inf.time + ".") : "Treniruotė nesuplanuota."),
+    past ? h("button", { class: "btn ghost block", on: { click: () => openLogPast(calSel) } }, calSel === today ? "+ Pažymėti atliktą treniruotę" : "+ Tą dieną treniravausi") : null,
     inf.ds.length ? h("p", { class: "eyebrow" }, "Vaistai ir vitaminai") : null,
-    inf.ds.length ? (calSel === today ? h("div", { class: "ask" }, inf.ds.map(x => doseQ(x, renderCal)))
-      : h("div", { class: "hist" }, inf.ds.map(x => h("div", { class: "r" }, h("span", {}, x.med.name + " · " + x.slot.label),
-        h("span", { class: "tag" + (x.st === "y" ? " l" : x.st === "n" || calSel < today ? " s" : "") }, x.st === "y" ? "išgerta" : x.st === "n" ? "neišgerta" : calSel < today ? "nepažymėta" : "laukia"))))) : null,
+    inf.ds.length ? (past ? h("div", { class: "ask" }, inf.ds.map(x => doseQ(x, renderCal, calSel)))
+      : h("div", { class: "hist" }, inf.ds.map(x => h("div", { class: "r" }, h("span", {}, x.med.name + " · " + x.slot.label), h("span", { class: "tag" }, "laukia"))))) : null,
     inf.w || inf.kcal ? h("p", { class: "eyebrow" }, "Svoris ir kalorijos") : null,
     inf.w || inf.kcal ? h("p", { class: "num" }, (inf.w ? kg(inf.w.kg) + " kg" : "") + (inf.w && inf.kcal ? " · " : "") + (inf.kcal ? inf.kcal + " kcal" : "")) : null);
   const courses = H_().meds.filter(m => m.start || m.end);
@@ -1225,16 +1262,19 @@ function renderCal() {
       h("div", { style: "display:flex;gap:8px" },
         h("button", { class: "back", "aria-label": "Ankstesnis mėnuo", on: { click: () => { calMonth = new Date(y, mo - 1, 1); renderCal(); } } }, icon("prev")),
         h("button", { class: "back", "aria-label": "Kitas mėnuo", on: { click: () => { calMonth = new Date(y, mo + 1, 1); renderCal(); } } }, icon("next")))),
+    h("button", { class: "schedcard", on: { click: openTrain } },
+      h("div", {}, h("p", { class: "eyebrow" }, "Treniruočių grafikas"),
+        h("b", {}, t ? schedText(t) : "Dar nenustatytas"),
+        h("small", {}, t ? "Nuo " + fmtDate(t.start || firstUseDay()) : "Paspausk ir pasirink dienas bei valandas")),
+      h("span", { class: "link" }, t ? "Keisti" : "Nustatyti")),
     h("section", { class: "panel" }, grid,
       h("div", { class: "legend2" },
         h("span", {}, h("i", { class: "tr done" }), "Treniruotė atlikta"), h("span", {}, h("i", { class: "tr" }), "Suplanuota"), h("span", {}, h("i", { class: "tr miss" }), "Praleista"),
-        h("span", {}, h("i", { class: "md ok" }), "Vaistai išgerti"), h("span", {}, h("i", { class: "md part" }), "Dalis"), h("span", {}, h("i", { class: "wt" }), "Svėrimas"))),
+        h("span", {}, h("i", { class: "md ok" }), "Vaistai išgerti"), h("span", {}, h("i", { class: "md part" }), "Dalis"), h("span", {}, h("i", { class: "wt" }), "Svėrimas")),
+      h("p", { class: "muted", style: "font-size:.8rem" }, "Paspausk praėjusią dieną, kad pažymėtum, ką tada atlikai.")),
     det,
-    h("section", { class: "panel" },
-      h("div", { class: "sec-h" }, h("h3", {}, "Treniruočių grafikas"), h("button", { class: "link", on: { click: openTrain } }, t ? "Keisti" : "Nustatyti")),
-      h("p", { class: "muted" }, t ? t.days.map(i => WD[i]).join(", ") + " · " + t.time : "Grafikas dar nenustatytas.")),
     courses.length ? h("section", { class: "panel" }, h("h3", {}, "Vartojimo kursai"),
-      h("div", { class: "hist" }, courses.map(m => { const [sc, co] = courseText(m); return h("div", { class: "r" }, h("span", { class: "mcol" }, h("b", {}, m.name, h("span", { class: "kind" }, m.kind === "vit" ? "vitaminas" : "vaistas")), h("small", { class: "muted" }, co)),
+      h("div", { class: "hist" }, courses.map(m => { const [, co] = courseText(m); return h("div", { class: "r" }, h("span", { class: "mcol" }, h("b", {}, m.name, h("span", { class: "kind" }, m.kind === "vit" ? "vitaminas" : "vaistas")), h("small", { class: "muted" }, co)),
         m.end ? h("span", { class: "course" }, h("i", { style: "width:" + Math.max(0, Math.min(100, daysBetween(m.start, iso()) / Math.max(1, daysBetween(m.start, m.end)) * 100)) + "%" })) : null); }))) : null);
 }
 let sheetEl = null;
