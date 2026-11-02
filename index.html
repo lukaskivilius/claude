@@ -52,13 +52,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .btn.block{width:100%}
 svg.fig{display:block;width:100%;height:auto}
-svg.fig .gnd{stroke:var(--line);stroke-width:3;stroke-linecap:round}
-svg.fig .lim{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
-svg.fig .near{stroke:var(--accent)}
-svg.fig .farl{stroke:var(--far)}
-svg.fig .body{stroke:var(--ink)}
-svg.fig .head{fill:var(--surface);stroke:var(--ink);stroke-width:6}
-svg.fig .tgt{fill:none;stroke:var(--good);stroke-width:3;stroke-dasharray:4 4}
+.fbox,.p-fig{overflow:hidden}
 
 /* top */
 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
@@ -116,7 +110,7 @@ svg.fig .tgt{fill:none;stroke:var(--good);stroke-width:3;stroke-dasharray:4 4}
 .p-top{display:flex;align-items:center;gap:12px}
 .p-top .meter{flex:1}
 .x{border:0;background:var(--surface);width:40px;height:40px;border-radius:12px;font-size:1.2rem;border:1px solid var(--line)}
-.p-fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:22px;border:1px solid var(--line)}
+.p-fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#F7F7FB 50%,#D2D2DE 50%);border-radius:22px}
 .p-fig svg{max-height:100%;width:auto;max-width:100%;height:100%}
 .p-name{display:flex;flex-direction:column;gap:4px}
 .side{display:inline-block;font-size:.78rem;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink);align-self:flex-start}
@@ -134,13 +128,17 @@ svg.fig .tgt{fill:none;stroke:var(--good);stroke-width:3;stroke-dasharray:4 4}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="studioBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7F7FB"/><stop offset="1" stop-color="#E4E4EE"/></linearGradient>
+<linearGradient id="studioFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4E4EE" stop-opacity="0"/><stop offset="1" stop-color="#CFCFDB"/></linearGradient>
+</defs></svg>
 <div id="app"></div>
 <script>
 "use strict";
 /* ---------- Figūrėlės modelis ---------- */
 const RAD = Math.PI / 180;
-const LEN = { torso: 50, neck: 6, head: 9, ua: 24, fa: 22, th: 33, sh: 33, foot: 7 };
-const GROUND = 186;
+const LEN = { torso: 50, neck: 6, head: 9, ua: 24, fa: 22, th: 33, sh: 33, foot: 9 };
+const GROUND = 180;
 const S = { t: 180, la: [0, 0], ra: [0, 0], ll: [0, 0], rl: [0, 0] };
 const P = o => Object.assign({}, S, o);
 
@@ -159,8 +157,8 @@ function joints(p, front, mirror) {
   const eL = add(shL, p.la[0], LEN.ua), hL = add(eL, p.la[1], LEN.fa);
   const kR = add(hipR, p.rl[0], LEN.th), fR = add(kR, p.rl[1], LEN.sh);
   const kL = add(hipL, p.ll[0], LEN.th), fL = add(kL, p.ll[1], LEN.sh);
-  const tR = front ? fR : add(fR, p.rl[1] + 90, LEN.foot);
-  const tL = front ? fL : add(fL, p.ll[1] + 90, LEN.foot);
+  const tR = add(fR, p.rl[1] + 90, front ? 4 : LEN.foot);
+  const tL = add(fL, p.ll[1] + (front ? -90 : 90), front ? 4 : LEN.foot);
   const j = { hip, top, head, shR, shL, hipR, hipL, eR, hR, eL, hL, kR, fR, tR, kL, fL, tL };
   if (mirror) for (const k in j) j[k] = [-j[k][0], j[k][1]];
   return j;
@@ -254,20 +252,72 @@ function geo(id, mirror) {
   geoCache.set(key, g);
   return g;
 }
+const SKIN = "#E2AE8E", SKIN_FAR = "#C08A6B", SKIN_SH = "#B97E60", CLOTH = "#2C2D34", CLOTH_FAR = "#1B1C21", TOP = "#33343C", HAIR = "#3A2A22";
+const R_ = { th: [7.6, 5], sh: [5, 3.3], ua: [4.1, 3.3], fa: [3.2, 2.5] };
+const f1 = n => n.toFixed(1);
+function capsule(A, B, rA, rB) {
+  const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 0.001, nx = -dy / L, ny = dx / L;
+  return "M" + f1(A[0] + nx * rA) + " " + f1(A[1] + ny * rA) + "L" + f1(B[0] + nx * rB) + " " + f1(B[1] + ny * rB) +
+    "A" + rB + " " + rB + " 0 0 0 " + f1(B[0] - nx * rB) + " " + f1(B[1] - ny * rB) +
+    "L" + f1(A[0] - nx * rA) + " " + f1(A[1] - ny * rA) + "A" + rA + " " + rA + " 0 0 0 " + f1(A[0] + nx * rA) + " " + f1(A[1] + ny * rA) + "Z";
+}
+const dot = (c, r) => "M" + f1(c[0] - r) + " " + f1(c[1]) + "a" + r + " " + r + " 0 1 0 " + 2 * r + " 0a" + r + " " + r + " 0 1 0 " + -2 * r + " 0Z";
+function smooth(pts) {
+  const n = pts.length; let d = "M" + f1(pts[0][0]) + " " + f1(pts[0][1]);
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    d += "C" + f1(p1[0] + (p2[0] - p0[0]) / 6) + " " + f1(p1[1] + (p2[1] - p0[1]) / 6) + " " + f1(p2[0] - (p3[0] - p1[0]) / 6) + " " + f1(p2[1] - (p3[1] - p1[1]) / 6) + " " + f1(p2[0]) + " " + f1(p2[1]);
+  }
+  return d + "Z";
+}
+/* torso profile: [position along spine 0..1, forward half-width, back half-width] */
+const PROF_SIDE = [[-0.05, 5, 6], [0.06, 8, 10.5], [0.28, 7, 8.2], [0.5, 6, 6.2], [0.7, 8.3, 6.6], [0.88, 7.4, 6.8], [1, 5.6, 5.4], [1.05, 3.2, 3.2]];
+const PROF_FRONT = [[-0.05, 9, 9], [0.1, 14.5, 14.5], [0.45, 10.5, 10.5], [0.75, 12.5, 12.5], [0.95, 14.5, 14.5], [1.04, 9, 9]];
 function makeFig(id, mirror, still) {
   const svg = document.createElementNS(NS, "svg");
   svg.setAttribute("viewBox", "0 0 200 200");
   svg.setAttribute("class", "fig");
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", EX[id].n);
-  const mk = (tag, cls) => { const e = document.createElementNS(NS, tag); e.setAttribute("class", cls); svg.appendChild(e); return e; };
-  const gl = mk("line", "gnd"); gl.setAttribute("x1", 8); gl.setAttribute("x2", 192); gl.setAttribute("y1", GROUND + 3.5); gl.setAttribute("y2", GROUND + 3.5);
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
   const g = geo(id, mirror);
-  if (g.target) { const c = mk("circle", "tgt"); c.setAttribute("cx", g.target[0]); c.setAttribute("cy", g.target[1]); c.setAttribute("r", 11); }
-  const el = { aL: mk("polyline", "lim farl"), lL: mk("polyline", "lim farl"), tor: mk("polyline", "lim body"),
-    head: mk("circle", "head"), lR: mk("polyline", "lim near"), aR: mk("polyline", "lim near") };
-  el.head.setAttribute("r", LEN.head);
-  const f = { svg, id, mirror, el, g, t0: performance.now(), still };
+  mk("rect", { width: 200, height: 200, fill: "url(#studioBg)" });
+  mk("rect", { y: 150, width: 200, height: 50, fill: "url(#studioFloor)" });
+  mk("polygon", { points: `24,${GROUND - 6} 176,${GROUND - 6} 194,${GROUND + 8} 6,${GROUND + 8}`, fill: "#36373E" });
+  mk("polygon", { points: `6,${GROUND + 8} 194,${GROUND + 8} 194,${GROUND + 10} 6,${GROUND + 10}`, fill: "#202126" });
+  const shadow = mk("ellipse", { cy: GROUND + 1, rx: 34, ry: 3.2, fill: "#000", opacity: .22 });
+  if (g.target) {
+    const t = mk("g", { transform: `translate(${f1(g.target[0])} ${f1(g.target[1])})` });
+    mk("rect", { x: -6, y: -12, width: 12, height: 24, rx: 5, fill: "#C8372D" }, t);
+    mk("rect", { x: -6, y: -12, width: 12, height: 24, rx: 5, fill: "none", stroke: "#8E241D", "stroke-width": 1.2 }, t);
+  }
+  const P_ = (fill) => mk("path", { fill });
+  const el = {};
+  const front = g.front;
+  if (front) {
+    el.legL = P_(CLOTH_FAR); el.legR = P_(CLOTH); el.feet = P_(SKIN);
+    el.torso = P_(TOP); el.neck = P_(SKIN_SH);
+    el.head = mk("g", {});
+    el.armL = P_(SKIN); el.armR = P_(SKIN);
+  } else {
+    el.armL = P_(SKIN_FAR); el.legL = P_(CLOTH_FAR); el.footL = P_(SKIN_FAR);
+    el.torso = P_(TOP); el.neck = P_(SKIN_SH);
+    el.legR = P_(CLOTH); el.footR = P_(SKIN);
+    el.head = mk("g", {});
+    el.armR = P_(SKIN);
+  }
+  /* head drawn in local coordinates, face toward +x */
+  mk("ellipse", { rx: 7.8, ry: 9.4, fill: SKIN }, el.head);
+  if (front) {
+    mk("path", { d: "M-8.3 -0.5C-9 -11 9 -11 8.3 -0.5C7 -5.5 4 -7 0 -7.2C-4 -7 -7 -5.5 -8.3 -0.5Z", fill: HAIR }, el.head);
+    mk("ellipse", { cx: -8, cy: 0.5, rx: 1.4, ry: 2.3, fill: SKIN_SH }, el.head);
+    mk("ellipse", { cx: 8, cy: 0.5, rx: 1.4, ry: 2.3, fill: SKIN_SH }, el.head);
+  } else {
+    mk("path", { d: "M7.6 -1L9.8 2.4L7.4 3.4Z", fill: SKIN }, el.head);
+    mk("path", { d: "M-7.9 2C-9.5 -7 -4 -11.2 1.5 -10.6C5.5 -10.2 8.4 -7.6 8 -3.8C5 -6.2 1.5 -6.6 -1 -4.6C-2.6 -1.5 -3 3 -4.6 7.4C-6.6 6.6 -7.6 4.6 -7.9 2Z", fill: HAIR }, el.head);
+    mk("ellipse", { cx: 0.2, cy: 0.6, rx: 1.5, ry: 2.2, fill: SKIN_SH }, el.head);
+  }
+  const f = { svg, id, mirror, el, g, shadow, t0: performance.now(), still };
   drawFrame(f, still ? (typeof still === "number" ? still : peakTime(id)) : 0);
   if (!still) figs.add(f);
   return svg;
@@ -283,17 +333,33 @@ function poseAt(id, sec) {
   return k[0][0];
 }
 function drawFrame(f, sec) {
-  const ex = EX[f.id], p = poseAt(f.id, sec), j = joints(p, f.g.front, f.mirror);
-  const dx = f.g.shift - anchorX(j, ex.a), dy = GROUND - maxY(j);
-  const pt = a => (a[0] + dx).toFixed(1) + "," + (a[1] + dy).toFixed(1);
-  const pts = arr => arr.map(pt).join(" ");
-  f.el.aL.setAttribute("points", pts([j.shL, j.eL, j.hL]));
-  f.el.aR.setAttribute("points", pts([j.shR, j.eR, j.hR]));
-  f.el.lL.setAttribute("points", pts([j.hipL, j.kL, j.fL, j.tL]));
-  f.el.lR.setAttribute("points", pts([j.hipR, j.kR, j.fR, j.tR]));
-  f.el.tor.setAttribute("points", f.g.front ? pts([j.hipL, j.hipR, j.hip, j.top, j.shL, j.shR, j.top, j.head]) : pts([j.hip, j.top]));
-  f.el.head.setAttribute("cx", (j.head[0] + dx).toFixed(1));
-  f.el.head.setAttribute("cy", (j.head[1] + dy).toFixed(1));
+  const ex = EX[f.id], p = poseAt(f.id, sec), j0 = joints(p, f.g.front, f.mirror);
+  const dx = f.g.shift - anchorX(j0, ex.a), dy = GROUND - maxY(j0);
+  const j = {}; for (const k in j0) j[k] = [j0[k][0] + dx, j0[k][1] + dy];
+  const el = f.el, front = f.g.front;
+  const tv = [(j.top[0] - j.hip[0]) / LEN.torso, (j.top[1] - j.hip[1]) / LEN.torso];
+  const fw = f.mirror ? [tv[1], -tv[0]] : [-tv[1], tv[0]];
+  const prof = front ? PROF_FRONT : PROF_SIDE;
+  const at = (s, w) => [j.hip[0] + tv[0] * s * LEN.torso + fw[0] * w, j.hip[1] + tv[1] * s * LEN.torso + fw[1] * w];
+  const tp = prof.map(([s, a]) => at(s, a)).concat(prof.slice().reverse().map(([s, , b]) => at(s, -b)));
+  el.torso.setAttribute("d", smooth(tp));
+  const neckTop = [j.top[0] + tv[0] * 9, j.top[1] + tv[1] * 9];
+  el.neck.setAttribute("d", capsule(j.top, neckTop, 3.6, 3.2));
+  const arm = (sh, e, hd) => capsule(sh, e, R_.ua[0], R_.ua[1]) + capsule(e, hd, R_.fa[0], R_.fa[1]) + dot(hd, 3);
+  const leg = (hp, k, ft) => capsule(hp, k, R_.th[0], R_.th[1]) + capsule(k, ft, R_.sh[0], R_.sh[1]);
+  el.armL.setAttribute("d", arm(j.shL, j.eL, j.hL));
+  el.armR.setAttribute("d", arm(j.shR, j.eR, j.hR));
+  el.legL.setAttribute("d", leg(j.hipL, j.kL, j.fL));
+  el.legR.setAttribute("d", leg(j.hipR, j.kR, j.fR));
+  const foot = (a, t) => { const ux = (t[0] - a[0]) / LEN.foot, uy = (t[1] - a[1]) / LEN.foot; return capsule([a[0] - ux * 2.5, a[1] - uy * 2.5], t, 3.3, 2.3); };
+  if (front) el.feet.setAttribute("d", foot(j.fL, j.tL) + foot(j.fR, j.tR));
+  else { el.footL.setAttribute("d", foot(j.fL, j.tL)); el.footR.setAttribute("d", foot(j.fR, j.tR)); }
+  const rot = Math.atan2(tv[0], -tv[1]) * 180 / Math.PI;
+  el.head.setAttribute("transform", `translate(${f1(j.head[0])} ${f1(j.head[1])}) rotate(${f1(rot)})` + (f.mirror && !front ? " scale(-1 1)" : ""));
+  const xs = [j.fL[0], j.fR[0], j.hip[0], j.kL[0], j.kR[0]];
+  const mnx = Math.min(...xs), mxx = Math.max(...xs);
+  f.shadow.setAttribute("cx", f1((mnx + mxx) / 2));
+  f.shadow.setAttribute("rx", f1(Math.max(18, (mxx - mnx) / 2 + 14)));
 }
 const figs = new Set();
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
