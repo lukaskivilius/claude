@@ -218,6 +218,16 @@ svg.fig{display:block;width:100%;height:auto}
 .feel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .feel button{border:0;background:var(--surface);border-radius:14px;padding:12px 4px;font-weight:700;box-shadow:var(--shadow)}
 .feel button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* level chip + test */
+.lvchip{margin-top:8px;border:0;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:.82rem;border-radius:999px;padding:5px 8px 5px 12px;display:inline-flex;align-items:center;gap:2px}
+.lvchip .ico{width:16px;height:16px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{border:0;background:var(--surface);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;text-align:left;font-weight:600;box-shadow:var(--shadow);transition:transform .12s}
+.opt:active{transform:scale(.98)}
+.opt.on{box-shadow:0 0 0 2px var(--accent) inset,var(--shadow)}
+.opt .t2{display:flex;flex-direction:column;gap:2px}
+.opt .t2 small{color:var(--muted);font-weight:500;font-size:.85rem;line-height:1.4}
+.dotn{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;flex:none}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{-webkit-line-clamp:2}.ctrl .main{width:64px;height:64px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -320,6 +330,14 @@ const EX = {
     k: [[P(GUARD_F), .6], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .4], [P(Object.assign({ t: 215, rl: [108, 112] }, GUARD_F)), .55], [P(Object.assign({ t: 192, rl: [95, -10] }, GUARD_F)), .45]] },
   high_kick: { n: "Spyris į galvos aukštį", v: "side", a: "lf", tg: 2, d: "Užtaisyk kelį aukštai, pasisuk ant atraminės kojos ir ištiesk koją iki taikinio galvos aukštyje. Lėtai ir tiksliai, ne per jėgą.",
     k: [[P(GUARD_S), .7], [P(Object.assign({ t: 195, rl: [125, 0] }, GUARD_S)), .45], [P(Object.assign({ t: 222, rl: [143, 145] }, GUARD_S)), .7], [P(Object.assign({ t: 195, rl: [125, 0] }, GUARD_S)), .5]] },
+  front_split_easy: { n: "Špagatas su atrama", v: "side", d: "Kojos plačiai į priekį ir atgal, rankomis remkis į knygas ar kėdes šonuose. Nusileisk tik tiek, kiek patogu, ir laikyk. Dubuo žiūri tiesiai.",
+    k: [[P({ t: 172, rl: [42, 42], ll: [-42, -42], la: [20, 15], ra: [20, 15] }), 2.5], [P({ t: 168, rl: [56, 56], ll: [-56, -56], la: [28, 20], ra: [28, 20] }), 3], [P({ t: 168, rl: [56, 56], ll: [-56, -56], la: [28, 20], ra: [28, 20] }), 2]] },
+  front_split_fold: { n: "Špagatas su pasilenkimu", v: "side", d: "Iš pilno ar beveik pilno špagato lenkis pirmyn virš priekinės kojos, nugara tiesi. Rankos slenka pirmyn grindimis.",
+    k: [[P({ t: 178, rl: [86, 88], ll: [-86, -88], la: [25, 15], ra: [25, 15] }), 2.5], [P({ t: 118, rl: [86, 88], ll: [-86, -88], la: [95, 92], ra: [95, 92] }), 3], [P({ t: 118, rl: [86, 88], ll: [-86, -88], la: [95, 92], ra: [95, 92] }), 2]] },
+  middle_split_easy: { n: "Platus stovėjimas", v: "front", d: "Išskėsk kojas plačiai, pėdos pirmyn. Rankomis remkis į šlaunis ir lėtai sėsk dubeniu žemyn, kol pajusi tempimą vidinėje šlaunyje.",
+    k: [[P({ rl: [30, 30], ll: [-30, -30], la: [-14, -4], ra: [14, 4] }), 2.5], [P({ rl: [44, 44], ll: [-44, -44], la: [-10, 0], ra: [10, 0] }), 3], [P({ rl: [44, 44], ll: [-44, -44], la: [-10, 0], ra: [10, 0] }), 2]] },
+  lying_ham_easy: { n: "Kojos tempimas sulenktu keliu", v: "side", d: "Gulėk ant nugaros, kitos kojos pėda ant grindų. Suimk šlaunį už kelio ir lėtai tiesk koją į viršų tiek, kiek leidžia. Gali naudoti diržą.",
+    k: [[P({ t: -90, ll: [150, 30], rl: [168, 115], la: [128, 128], ra: [128, 128] }), 2.5], [P({ t: -90, ll: [150, 30], rl: [165, 150], la: [125, 125], ra: [125, 125] }), 2.5], [P({ t: -90, ll: [150, 30], rl: [165, 150], la: [125, 125], ra: [125, 125] }), 2]] },
   relax: { n: "Atsipalaidavimas", v: "side", d: "Gulėk ant nugaros, rankos palei kūną. Kvėpuok pilvu: 4 s įkvėpk, 6 s iškvėpk.",
     k: [[P({ t: -90, ll: [90, 90], rl: [90, 90], la: [80, 88], ra: [80, 88] }), 4], [P({ t: -90, ll: [90, 90], rl: [90, 90], la: [70, 82], ra: [70, 82] }), 6]] },
 };
@@ -467,7 +485,14 @@ function loop(now) {
 }
 requestAnimationFrame(loop);
 
-/* ---------- Programa (28 dienos) ---------- */
+/* ---------- Nustatymai ir saugojimas ---------- */
+const KEY = "spagatas.v1";
+let store = { done: {}, log: [], lvl: null, assess: null, settings: { sound: true, vib: true, level: 1 } };
+try {
+  const s = JSON.parse(localStorage.getItem(KEY));
+  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({ sound: true, vib: true, level: 1 }, s.settings || {}) };
+} catch (e) {}
+/* ---------- Programa (28 dienos, pagal lankstumo lygį) ---------- */
 const WEEKS = ["Pagrindai", "Gilinimas", "Jėga lankstume", "Špagatas ir spyris"];
 const TYPES = {
   A: { s: "Išil.", n: "Išilginis špagatas" },
@@ -477,32 +502,48 @@ const TYPES = {
   R: { s: "Poils.", n: "Poilsis" },
   T: { s: "Test.", n: "Baigiamasis testas" },
 };
-const PATTERN = ["A", "B", "C", "A", "B", "L", "R"];
-function buildDay(n) {
-  const w = Math.floor((n - 1) / 7);
-  const type = n === 28 ? "T" : PATTERN[(n - 1) % 7];
-  const H = [30, 40, 50, 60][w], RP = [8, 10, 12, 14][w];
+const LV = {
+  beg: { n: "Pradedantysis", short: "Pradedantysis", H: [20, 25, 30, 40], RP: [6, 8, 10, 12], pat: ["A", "B", "L", "C", "A", "L", "R"],
+    d: "Lengvesni pratimai su atrama, trumpesnis laikymas ir daugiau poilsio. Pilnas špagatas ir spyris į galvą atsiranda tik paskutinę savaitę." },
+  mid: { n: "Vidutinis", short: "Vidutinis", H: [30, 40, 50, 60], RP: [8, 10, 12, 14], pat: ["A", "B", "C", "A", "B", "L", "R"],
+    d: "Subalansuota programa: špagatų progresija ir spyriai nuo pirmos savaitės, laikymas ilgėja nuo 30 iki 60 s." },
+  adv: { n: "Pažengęs", short: "Pažengęs", H: [45, 60, 75, 90], RP: [10, 12, 14, 16], pat: ["A", "B", "C", "A", "B", "C", "L"],
+    d: "Ilgas laikymas iki 90 s, gilesni špagatai su pasilenkimu ir daugiau aukštų spyrių. Be pilnų poilsio dienų." },
+};
+function buildDay(n, lvl) {
+  const L = LV[lvl], w = Math.floor((n - 1) / 7);
+  const type = n === 28 ? "T" : L.pat[(n - 1) % 7];
+  const H = L.H[w], RP = L.RP[w];
   const hold = (id, v, sides = true) => ({ id, type: "hold", v, sides });
   const reps = (id, v, sides = true) => ({ id, type: "reps", v, sides });
   const time = (id, v) => ({ id, type: "time", v, sides: false });
-  const warm = [time("warm_jog", 60), reps("squat", 10, false), reps("swing_front", 10 + 2 * w), reps("swing_side", 10 + 2 * w)];
+  const sw = { beg: 8, mid: 10, adv: 12 }[lvl] + 2 * w;
+  const warm = [time("warm_jog", 60), reps("squat", lvl === "beg" ? 8 : 10, false), reps("swing_front", sw), reps("swing_side", sw)];
   let main = [];
-  if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold("lying_ham", H), hold("pigeon", H), hold("front_split", H), hold("seated_fold", H, false)];
-  if (type === "B") main = [hold("butterfly", H, false), reps("cossack", RP), hold("straddle_side", H), hold("quad_stretch", H), hold("middle_split", H + 15, false), hold("middle_split", H + 15, false)];
-  if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP), reps("front_kick", RP), reps("side_kick", RP), reps("high_kick", Math.max(5, RP - 4)), hold("front_split", H - 10), hold("middle_split", H, false)];
-  if (type === "L") return { n, w, type, sections: [["Lengvas tempimas", [time("warm_jog", 45), hold("fold_stand", 45, false), hold("butterfly", 60, false), hold("lying_ham", 45), time("relax", 90)]]] };
+  if (lvl === "beg") {
+    if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold(w < 2 ? "lying_ham_easy" : "lying_ham", H), hold("seated_fold", H, false), hold(w < 3 ? "front_split_easy" : "front_split", H)];
+    if (type === "B") main = [hold("butterfly", H, false), reps("cossack", Math.max(4, RP - 2)), hold("straddle_side", H), hold("quad_stretch", H), hold(w < 3 ? "middle_split_easy" : "middle_split", H + 10, false)];
+    if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP)].concat(w >= 1 ? [reps("front_kick", RP)] : [], w >= 2 ? [reps("side_kick", RP - 2)] : [], w >= 3 ? [reps("high_kick", 4)] : [], [hold("front_split_easy", H)]);
+    if (type === "T") main = [hold("front_split", 30), hold("middle_split", 30, false), reps("high_kick", 3)];
+  } else if (lvl === "mid") {
+    if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold("lying_ham", H), hold("pigeon", H), hold("front_split", H), hold("seated_fold", H, false)];
+    if (type === "B") main = [hold("butterfly", H, false), reps("cossack", RP), hold("straddle_side", H), hold("quad_stretch", H), hold("middle_split", H + 15, false), hold("middle_split", H + 15, false)];
+    if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP), reps("front_kick", RP), reps("side_kick", RP), reps("high_kick", Math.max(5, RP - 4)), hold("front_split", H - 10), hold("middle_split", H, false)];
+    if (type === "T") main = [hold("front_split", 60), hold("middle_split", 60, false), reps("high_kick", 5)];
+  } else {
+    if (type === "A") main = [hold("lunge", H), hold("half_split", H), hold("pigeon", H), hold("lying_ham", H), hold("front_split", H), hold("front_split_fold", H), hold("seated_fold", H, false)];
+    if (type === "B") main = [hold("butterfly", H, false), reps("cossack", RP), hold("straddle_side", H), hold("quad_stretch", H), hold("middle_split", H + 15, false), hold("middle_split", H + 15, false)];
+    if (type === "C") main = [reps("leg_raise_front", RP), reps("leg_raise_side", RP), reps("front_kick", RP), reps("side_kick", RP), reps("high_kick", RP - 2), hold("front_split", H - 15), hold("middle_split", H, false)];
+    if (type === "T") main = [hold("front_split", 90), hold("front_split_fold", 60), hold("middle_split", 90, false), reps("high_kick", 8)];
+  }
+  const lt = lvl === "beg" ? 30 : lvl === "mid" ? 45 : 60;
+  if (type === "L") return { n, w, type, sections: [["Lengvas tempimas", [time("warm_jog", 45), hold("fold_stand", lt, false), hold("butterfly", lt + 15, false), hold(lvl === "beg" ? "lying_ham_easy" : "lying_ham", lt), time("relax", 90)]]] };
   if (type === "R") return { n, w, type, sections: [["Poilsis", [time("relax", 120)]]] };
-  if (type === "T") main = [hold("front_split", 60), hold("middle_split", 60, false), reps("high_kick", 5)];
   return { n, w, type, sections: [["Apšilimas", warm], ["Pagrindinė dalis", main], ["Pabaiga", [time("relax", 60)]]] };
 }
-const DAYS = Array.from({ length: 28 }, (_, i) => buildDay(i + 1));
-/* ---------- Nustatymai ir saugojimas ---------- */
-const KEY = "spagatas.v1";
-let store = { done: {}, log: [], settings: { sound: true, vib: true, level: 1 } };
-try {
-  const s = JSON.parse(localStorage.getItem(KEY));
-  if (s && s.done) store = { done: s.done, log: s.log || [], settings: Object.assign({ sound: true, vib: true, level: 1 }, s.settings || {}) };
-} catch (e) {}
+let DAYS = [];
+const rebuildDays = () => { DAYS = Array.from({ length: 28 }, (_, i) => buildDay(i + 1, store.lvl || "mid")); };
+rebuildDays();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
 const isDone = n => !!store.done[n];
 const nextDay = () => { for (let i = 1; i <= 28; i++) if (!isDone(i)) return i; return 28; };
@@ -518,7 +559,10 @@ function dayMinutes(d) {
   return Math.max(2, Math.round(s / 60));
 }
 const dayCount = d => d.sections.reduce((s, [, it]) => s + it.length, 0);
-function mainFig(d) { return ({ A: "front_split", B: "middle_split", C: "high_kick", L: "fold_stand", R: "relax", T: "high_kick" })[d.type]; }
+function mainFig(d) {
+  const beg = store.lvl === "beg" && d.w < 3, adv = store.lvl === "adv";
+  return ({ A: beg ? "front_split_easy" : adv ? "front_split_fold" : "front_split", B: beg ? "middle_split_easy" : "middle_split", C: beg ? "leg_raise_front" : "high_kick", L: "fold_stand", R: "relax", T: "high_kick" })[d.type];
+}
 const dkey = ts => { const d = new Date(ts); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
 function streak() {
   const set = new Set(Object.values(store.done).map(dkey));
@@ -529,8 +573,8 @@ function streak() {
 }
 const totalMin = () => store.log.reduce((s, l) => s + (l.min || 0), 0);
 const CATS = [["warm", "Apšilimas", ["warm_jog", "squat", "swing_front", "swing_side", "relax"]],
-  ["front", "Išilginis", ["lunge", "half_split", "front_split", "lying_ham", "pigeon", "seated_fold", "fold_stand", "quad_stretch"]],
-  ["mid", "Skersinis", ["butterfly", "straddle_side", "middle_split", "cossack"]],
+  ["front", "Išilginis", ["lunge", "half_split", "front_split_easy", "front_split", "front_split_fold", "lying_ham_easy", "lying_ham", "pigeon", "seated_fold", "fold_stand", "quad_stretch"]],
+  ["mid", "Skersinis", ["butterfly", "straddle_side", "middle_split_easy", "middle_split", "cossack"]],
   ["kick", "Spyriai", ["leg_raise_front", "leg_raise_side", "front_kick", "side_kick", "high_kick"]]];
 const catOf = id => (CATS.find(c => c[2].includes(id)) || CATS[0])[1];
 
@@ -613,11 +657,12 @@ function renderHome() {
         h("b", {}, String(i)), h("span", {}, isDone(i) ? "✓" : TYPES[dd.type].s)));
     }
     weeks.push(h("section", { class: "week" },
-      h("div", { class: "sec-h" }, h("h3", {}, (w + 1) + " savaitė · " + WEEKS[w]), h("span", { class: "muted num", style: "font-size:.82rem" }, "laikymas " + Math.round([30, 40, 50, 60][w] * store.settings.level / 5) * 5 + " s")), days));
+      h("div", { class: "sec-h" }, h("h3", {}, (w + 1) + " savaitė · " + WEEKS[w]), h("span", { class: "muted num", style: "font-size:.82rem" }, "laikymas " + Math.round(LV[store.lvl || "mid"].H[w] * store.settings.level / 5) * 5 + " s")), days));
   }
   shell("home",
     h("header", { class: "top" },
-      h("div", {}, h("p", { class: "eyebrow" }, date), h("h1", {}, "Špagato kelias")),
+      h("div", {}, h("p", { class: "eyebrow" }, date), h("h1", {}, "Špagato kelias"),
+        h("button", { class: "lvchip", on: { click: openAssess } }, "Lygis: " + LV[store.lvl || "mid"].n, icon("next"))),
       h("span", { class: "streak", title: "Dienos iš eilės" }, icon("flame"), String(st))),
     h("section", { class: "today" },
       fbox(mainFig(d), false),
@@ -708,10 +753,14 @@ function renderProgress() {
           new Date(l.ts).toLocaleDateString("lt-LT", { month: "short", day: "numeric" }) + " · " + TYPES[DAYS[l.n - 1].type].n + " · " + l.min + " min")),
         l.feel ? h("span", { class: "tag " + l.feel }, FEEL[l.feel]) : null)))
         : h("p", { class: "muted" }, "Čia matysi atliktas treniruotes ir kaip jauteisi. Pradėk nuo šiandienos dienos.")),
+    h("section", { class: "panel" }, h("div", { class: "sec-h" }, h("h3", {}, "Lankstumo lygis"), h("span", { class: "tag l" }, LV[store.lvl || "mid"].n)),
+      h("p", { class: "muted", style: "font-size:.9rem" }, LV[store.lvl || "mid"].d),
+      store.assess ? h("p", { class: "muted", style: "font-size:.82rem" }, "Testas atliktas " + new Date(store.assess.ts).toLocaleDateString("lt-LT", { month: "long", day: "numeric" }) + ". Pasitikrink kas 4 savaites.") : null,
+      h("button", { class: "btn ghost block", on: { click: openAssess } }, "Pasitikrinti lankstumą iš naujo")),
     h("section", { class: "panel" }, h("h3", {}, "Nustatymai"),
       sw("sound", "Garsas", "Pyptelėjimai skaičiuojant laiką"),
       sw("vib", "Vibracija", "Kai keičiasi pratimas (Android)"),
-      h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Sunkumas"), h("small", {}, "Laikymo laikas ir kartojimai")),
+      h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Sunkumas"), h("small", {}, "Papildomai trumpina ar ilgina laiką")),
         h("div", { class: "seg", role: "group" }, LEVELS.map(([v, l]) => h("button", { "aria-pressed": store.settings.level === v, on: { click: () => { store.settings.level = v; save(); renderProgress(); } } }, l)))),
       reset));
 }
@@ -738,6 +787,63 @@ function openSheet(id, it, mirror = false) {
   document.addEventListener("keydown", sheetKey);
 }
 
+/* ---------- Lankstumo testas ---------- */
+const QUIZ = [
+  { fig: "fold_stand", q: "Pasilenk stovėdamas tiesiomis kojomis. Kur pasieki rankomis?", o: ["Tik kelius", "Blauzdas", "Pirštais grindis", "Delnais grindis"] },
+  { fig: "front_split", q: "Išilginis špagatas: kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
+  { fig: "middle_split", q: "Skersinis špagatas: kiek tau trūksta iki grindų?", o: ["Daugiau nei 30 cm", "15–30 cm", "Mažiau nei 15 cm", "Nusileidžiu iki grindų"] },
+  { fig: "high_kick", q: "Kiek aukštai gali iškelti ar spirti tiesia koja?", o: ["Iki juosmens", "Iki krūtinės", "Iki pečių", "Iki galvos"] },
+];
+const levelFromScore = sc => sc <= 4 ? "beg" : sc <= 8 ? "mid" : "adv";
+let A_ = null;
+function openAssess() {
+  closeSheet();
+  A_ = { i: 0, ans: [], root: h("div", { class: "player", role: "dialog", "aria-modal": "true", "aria-label": "Lankstumo testas" }) };
+  document.body.append(A_.root); document.body.style.overflow = "hidden";
+  renderAssess();
+}
+function closeAssess() { if (!A_) return; A_.root.remove(); A_ = null; document.body.style.overflow = ""; route(); }
+function setLevel(l, ans) {
+  store.lvl = l; if (ans) store.assess = { ans, ts: Date.now() };
+  save(); rebuildDays();
+}
+function renderAssess() {
+  const r = A_.root, first = !store.lvl;
+  if (A_.i === -1) return r.replaceChildren(assessIntro(first));
+  if (A_.i < QUIZ.length) {
+    const q = QUIZ[A_.i];
+    const segs = h("div", { class: "segs" }); QUIZ.forEach((_, k) => segs.append(h("i", { class: k < A_.i ? "d" : k === A_.i ? "c" : "" })));
+    return r.replaceChildren(h("div", { class: "p-in" },
+      h("div", { class: "p-top" },
+        h("button", { class: "iconbtn", "aria-label": A_.i ? "Atgal" : "Uždaryti", on: { click: () => { if (A_.i) { A_.i--; A_.ans.pop(); renderAssess(); } else if (first) { A_.i = -1; renderAssess(); } else closeAssess(); } } }, icon(A_.i ? "prev" : "close")),
+        segs, h("span", { class: "muted num", style: "font-size:.85rem;font-weight:700" }, (A_.i + 1) + "/" + QUIZ.length)),
+      h("div", { class: "p-fig", style: "flex:1 1 40%" }, makeFig(q.fig, false)),
+      h("p", { class: "eyebrow" }, "Lankstumo testas"),
+      h("h2", {}, q.q),
+      h("div", { class: "opts" }, q.o.map((t, k) => h("button", { class: "opt", on: { click: () => { A_.ans.push(k); A_.i++; renderAssess(); } } },
+        h("span", { class: "dotn" }, String(k + 1)), t)))));
+  }
+  const sc = A_.ans.reduce((a, b) => a + b, 0), lvl = levelFromScore(sc);
+  let pick = A_.pick || lvl;
+  const lvBtn = Object.keys(LV).map(k => h("button", { class: "opt" + (pick === k ? " on" : ""), "aria-pressed": String(pick === k), on: { click: () => { A_.pick = k; renderAssess(); } } },
+    h("span", { class: "t2" }, h("b", {}, LV[k].n + (k === lvl ? " · rekomenduojama" : "")), h("small", {}, LV[k].d))));
+  r.replaceChildren(h("div", { class: "p-in", style: "overflow-y:auto" },
+    h("div", { class: "p-top" }, h("button", { class: "iconbtn", "aria-label": "Pakartoti testą", on: { click: () => { A_ = Object.assign(A_, { i: 0, ans: [], pick: null }); renderAssess(); } } }, icon("prev"))),
+    h("p", { class: "eyebrow" }, "Tavo rezultatas · " + sc + " iš 12 taškų"),
+    h("h1", {}, "Lygis: " + LV[lvl].n),
+    h("p", { class: "muted" }, "Pagal atsakymus parinkome programą. Jei nori, gali pasirinkti kitą lygį."),
+    h("div", { class: "opts" }, lvBtn),
+    h("button", { class: "btn block", style: "margin-top:auto", on: { click: () => { setLevel(pick, A_.ans); closeAssess(); go(""); } } }, "Pradėti programą")));
+}
+function assessIntro(first) {
+  return h("div", { class: "p-in", style: "overflow-y:auto" },
+    h("div", { class: "p-fig", style: "flex:1 1 45%" }, makeFig("front_split", false)),
+    h("p", { class: "eyebrow" }, "Sveikas!"),
+    h("h1", {}, "Pritaikykime programą tau"),
+    h("p", { class: "muted" }, "Atsakyk į 4 trumpus klausimus apie savo lankstumą. Pagal tai gausi pradedančiojo, vidutinio arba pažengusio programą. Prieš bandydamas pozas, trumpai apšilk."),
+    h("button", { class: "btn block", on: { click: () => { A_.i = 0; renderAssess(); } } }, "Pradėti testą"),
+    h("button", { class: "btn ghost block", on: { click: () => { setLevel("mid"); closeAssess(); } } }, first ? "Praleisti (vidutinis lygis)" : "Uždaryti"));
+}
 /* ---------- Treniruotės grotuvas ---------- */
 let audio = null, wake = null, P_ = null;
 function beep(freq = 880, dur = .12) {
@@ -868,11 +974,12 @@ function finish() {
     h("div", {}, h("h1", {}, "Diena " + n + " atlikta"),
       h("p", { class: "muted", style: "margin-top:6px" }, min + " min · " + P_.steps.length + " pratimai · serija " + streak() + " d.")),
     h("p", { class: "eyebrow" }, "Kaip sekėsi?"), feel,
-    h("p", { class: "muted" }, n < 28 ? "Kitą kartą: diena " + (n + 1) + ", " + TYPES[DAYS[n].type].n.toLowerCase() + "." : "Programa baigta! Kartok ją su didesniu sunkumu."),
+    h("p", { class: "muted" }, n < 28 ? "Kitą kartą: diena " + (n + 1) + ", " + TYPES[DAYS[n].type].n.toLowerCase() + "." : "Programa baigta! Pasitikrink lankstumą iš naujo skiltyje „Pažanga“ ir pradėk kitą ratą."),
     h("button", { class: "btn block", on: { click: () => { location.hash = ""; closePlayer(); } } }, "Baigti"))));
 }
 
 route();
+if (!store.lvl) { openAssess(); A_.i = -1; renderAssess(); }
 </script>
 </body>
 </html>
