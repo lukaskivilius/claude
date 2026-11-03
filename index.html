@@ -823,7 +823,7 @@ function shell(view, ...content) {
 function nav(view) {
   const b = (v, hash, ic, label) => h("button", { "aria-current": view === v ? "page" : null, on: { click: () => go(hash) } }, icon(ic), label);
   return h("nav", { class: "nav", "aria-label": "Pagrindinis meniu" }, h("div", { class: "in" },
-    b("namai", "", "home", "Namai"), b("sport", "sportas", "sport", "Sportas"), b("health", "sveikata", "heart", "Sveikata"), b("car", "transportas", "car", "Transportas"), b("paskyra", "paskyra", "user", "Paskyra")));
+    b("namai", "", "home", "Priminimai"), b("sport", "sportas", "sport", "Sportas"), b("health", "sveikata", "heart", "Sveikata"), b("car", "transportas", "car", "Transportas"), b("paskyra", "paskyra", "user", "Paskyra")));
 }
 function statsRow() {
   const st = streak();
@@ -1418,18 +1418,17 @@ function renderNamai() {
     h("button", { class: "link", on: { click: fn } }, label));
   const nDone = doneD.length + decided.length + doneT.length;
   shell("namai",
-    h("header", {}, h("p", { class: "eyebrow" }, (openD.length + autos.length + open.length) + " darbai šiandien"), h("h1", {}, "Namai")),
-    h("section", { class: "panel" }, h("h3", {}, "Ką reikia padaryti namuose?"),
+    h("header", {}, h("p", { class: "eyebrow" }, (openD.length + autos.length + open.length) + " darbai šiandien"), h("h1", {}, "Priminimai")),
+    h("section", { class: "panel" }, h("h3", {}, "Naujas priminimas"),
       field("Užduotis", text), field("Kada? (nebūtina)", date),
       h("button", { class: "btn block", on: { click: add } }, "+ Pridėti")),
     openD.length ? h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Vaistai ir vitaminai šiandien"),
       openD.map(x => row({ title: x.med.name, sub: (x.med.kind === "vit" ? "Vitaminas · " : "") + x.slot.label,
-        okLabel: "Išgėriau", ok: () => { markDose(x.key, "y"); renderNamai(); },
-        noLabel: "Ne", no: () => { markDose(x.key, "n"); renderNamai(); } }))) : null,
+        okLabel: "Išgėriau", ok: () => { markDose(x.key, "y"); renderNamai(); } }))) : null,
     autos.length ? h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Iš transporto"),
       autos.map(it => row({ title: it.title, warn: it.d < 0,
         sub: it.d < 0 ? "Pasibaigė prieš " + -it.d + " d." : "Galioja iki " + longDate(it.due) + " · liko " + it.d + " d.",
-        okLabel: "Padariau", ok: () => decide(it, "done"), noLabel: "Nedarysiu", no: () => decide(it, "skip") }))) : null,
+        okLabel: "Padariau", ok: () => decide(it, "done") }))) : null,
     h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Darbai"),
       open.length ? open.map(x => { const late = x.date && x.date < t0; return row({ title: x.text, late, warn: late,
         sub: x.date ? (late ? "Vėluoja nuo " : "Iki ") + fmtDate(x.date) : null,
