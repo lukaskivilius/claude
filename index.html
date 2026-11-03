@@ -349,7 +349,8 @@ i.cr{width:7px;height:7px;border-radius:2px;background:var(--warn)}
 .carhead{border:0;background:none;padding:0;width:100%;text-align:left;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:10px}
 .carhead .chev{color:var(--muted);display:inline-flex;transition:transform .2s;transform:rotate(90deg)}
 .carhead .chev.up{transform:rotate(-90deg)}
-.car.closed{gap:6px}
+.car.closed{gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.carhead{touch-action:manipulation;cursor:pointer}
 .csum{font-size:.85rem}
 .dotw{width:10px;height:10px;border-radius:50%;background:#E0A021;flex:none}
 .dotw.bad{background:var(--warn)}
@@ -1366,7 +1367,7 @@ function openOil(car, entry) {
         if (n != null && n <= k) { err.textContent = "Kito keitimo rida turi būti didesnė nei dabartinė."; err.hidden = false; return; }
         Object.assign(e, { d: date.value || iso(), km: k, next: n, note: note.value.trim() });
         const c = store.cars.find(x => x.id === car.id); c.oil = (c.oil || []).filter(x => x.id !== e.id).concat(e);
-        if (!c.km || k > c.km) c.km = k; save(); refresh();
+        if (!c.km || k > c.km) c.km = k; carOpen.add(c.id); save(); refresh();
       } } }, "Išsaugoti"),
       entry ? h("button", { class: "btn ghost block danger", on: { click: () => { const c = store.cars.find(x => x.id === car.id); c.oil = c.oil.filter(x => x.id !== e.id); save(); refresh(); } } }, "Ištrinti įrašą") : null));
 }
@@ -1378,7 +1379,7 @@ function openKm(car) {
     field("Rida (km)", kmI), err,
     h("button", { class: "btn block", on: { click: () => {
       const k = numIn(kmI.value); if (k == null || k < 0) { err.textContent = "Įrašyk ridą skaičiumi."; err.hidden = false; return; }
-      const c = store.cars.find(x => x.id === car.id); c.km = k; c.kmD = iso(); save(); refresh();
+      const c = store.cars.find(x => x.id === car.id); c.km = k; c.kmD = iso(); carOpen.add(c.id); save(); refresh();
     } } }, "Išsaugoti")));
 }
 /* papildomi laukeliai (bendri visoms transporto priemonėms) */
@@ -1446,15 +1447,16 @@ function fieldRow(c, f) {
     st && v ? h("span", { class: "tag" + st.cls }, st.txt) : icon("next"));
 }
 function carCard(c) {
-  const is = inspState(c), os = oilState(c), o = lastOil(c), open = carOpen.has(c.id) || store.cars.length === 1;
+  const is = inspState(c), os = oilState(c), o = lastOil(c), open = carOpen.has(c.id);
   const hist = (c.oil || []).slice().sort((a, b) => a.d < b.d ? 1 : -1);
   const worst = carWorst(c);
-  const head = h("button", { class: "carhead", "aria-expanded": String(open), on: { click: () => { if (carOpen.has(c.id)) carOpen.delete(c.id); else carOpen.add(c.id); renderCars(); } } },
+  const toggle = () => { if (carOpen.has(c.id)) carOpen.delete(c.id); else carOpen.add(c.id); renderCars(); };
+  const head = h("button", { class: "carhead", "aria-expanded": String(open), on: { click: e => { e.stopPropagation(); toggle(); } } },
     h("div", { class: "mcol" }, h("h2", {}, c.name), h("small", { class: "muted" }, c.owner ? "Savininkas: " + c.owner : "Savininkas nenurodytas")),
     h("span", { class: "rr" }, c.plate ? h("span", { class: "plate" }, c.plate) : null,
       !open && worst ? h("span", { class: "dotw" + (worst > 1 ? " bad" : ""), title: "Reikia dėmesio" }) : null,
       h("span", { class: "chev" + (open ? " up" : "") }, icon("next"))));
-  if (!open) return h("section", { class: "panel car closed" }, head,
+  if (!open) return h("section", { class: "panel car closed", on: { click: toggle } }, head,
     h("p", { class: "muted csum" }, [c.insp ? "Technikinė: " + is.txt.toLowerCase() : null, o && o.next ? "Tepalai: " + os.txt.toLowerCase() : null].filter(Boolean).join(" · ") || "Paspausk, kad išskleistum"));
   return h("section", { class: "panel car" }, head,
     h("div", { class: "crow" },
