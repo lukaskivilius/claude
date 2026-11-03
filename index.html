@@ -139,8 +139,8 @@ svg.fig{display:block;width:100%;height:auto}
 .sticky .in{max-width:560px;width:100%;display:flex;gap:10px}
 .sticky .in .btn:first-child{flex:1}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--nav);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
-.nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.62rem;min-width:0;font-weight:700;color:var(--muted)}
+.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:.7rem;min-width:0;font-weight:700;color:var(--muted)}
 .nav button[aria-current="page"]{color:var(--accent)}
 .nav button .ico{width:24px;height:24px}
 
@@ -399,6 +399,10 @@ i.cr{width:7px;height:7px;border-radius:2px;background:var(--warn)}
 .phrow input{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px;min-width:0;width:100%}
 .dayrow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.9rem;font-weight:700}
 .dayrow input{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:6px 10px}
+.prow2{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border:0;border-radius:14px;padding:12px 12px 12px 14px;text-align:left;color:var(--ink);width:100%;font:inherit;cursor:pointer}
+.prow2 .mcol{min-width:0}
+.prow2 .ico{color:var(--muted);width:18px;height:18px;flex:none}
+.whereBox{display:flex;flex-direction:column;gap:2px;background:var(--accent-soft);border-radius:14px;padding:12px 14px}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{font-size:.86rem}.ctrl .main{width:64px;height:64px}.ring .lbl small{font-size:.58rem;letter-spacing:.04em}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -661,10 +665,10 @@ requestAnimationFrame(loop);
 const KEY = "spagatas.v3";
 const DEF_SET = { sound: true, vib: true, level: 1 };
 const DEF_HEALTH = () => ({ profile: { goal: null, kcal: 2000 }, weights: [], food: {}, meds: [], medsAsked: false, taken: {} });
-let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET), health: DEF_HEALTH(), cars: [], carFields: [], home: { tasks: [], auto: {} }, people: [] };
+let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET), health: DEF_HEALTH(), cars: [], carFields: [], home: { tasks: [], auto: {} }, people: [], biz: { info: {}, contacts: [] }, trips: [] };
 try {
   const s = JSON.parse(localStorage.getItem(KEY));
-  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}), health: Object.assign(DEF_HEALTH(), s.health || {}), cars: s.cars || [], carFields: s.carFields || [], home: Object.assign({ tasks: [], auto: {} }, s.home || {}), people: s.people || [] };
+  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}), health: Object.assign(DEF_HEALTH(), s.health || {}), cars: s.cars || [], carFields: s.carFields || [], home: Object.assign({ tasks: [], auto: {} }, s.home || {}), people: s.people || [], biz: Object.assign({ info: {}, contacts: [] }, s.biz || {}), trips: s.trips || [] };
   else { const o = JSON.parse(localStorage.getItem("spagatas.v2")) || JSON.parse(localStorage.getItem("spagatas.v1")); if (o) { store.lvl = o.lvl || null; store.assess = o.assess || null; store.settings = Object.assign({}, DEF_SET, o.settings || {}); } }
 } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
@@ -808,7 +812,7 @@ function route() {
   if (location.hash === "#namai") return renderNamai();
   if (location.hash === "#paskyra") return renderPaskyra();
   if (location.hash === "#transportas") return renderCars();
-  renderHome();
+  renderNamai();
 }
 window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
 function shell(view, ...content) {
@@ -818,7 +822,7 @@ function shell(view, ...content) {
 function nav(view) {
   const b = (v, hash, ic, label) => h("button", { "aria-current": view === v ? "page" : null, on: { click: () => go(hash) } }, icon(ic), label);
   return h("nav", { class: "nav", "aria-label": "Pagrindinis meniu" }, h("div", { class: "in" },
-    b("home", "", "sun", "Šiandien"), b("sport", "sportas", "sport", "Sportas"), b("namai", "namai", "home", "Namai"), b("health", "sveikata", "heart", "Sveikata"), b("car", "transportas", "car", "Transportas"), b("paskyra", "paskyra", "user", "Paskyra")));
+    b("namai", "", "home", "Namai"), b("sport", "sportas", "sport", "Sportas"), b("health", "sveikata", "heart", "Sveikata"), b("car", "transportas", "car", "Transportas"), b("paskyra", "paskyra", "user", "Paskyra")));
 }
 function statsRow() {
   const st = streak();
@@ -840,25 +844,6 @@ function trackCard(t, opts = {}) {
 }
 
 /* ---------- Šiandien ---------- */
-function renderHome() {
-  const st = streak();
-  const date = new Date().toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" });
-  const todayDone = new Set(store.log.filter(l => dkey(l.ts) === dkey(Date.now())).map(l => l.track));
-  shell("home",
-    h("header", { class: "top" },
-      h("div", {}, h("p", { class: "eyebrow" }, date), h("h1", {}, "Špagato kelias"),
-        h("button", { class: "lvchip", on: { click: openAssess } }, "Lygis: " + LV[store.lvl || "mid"].n, icon("next"))),
-      h("span", { class: "streak", title: "Dienos iš eilės" }, icon("flame"), String(st))),
-    ...homeReminders(),
-    h("div", { class: "sec-h" }, h("h2", {}, "Ką šiandien darysi?"), h("span", { class: "muted", style: "font-size:.85rem" }, "Pasirink treniruotę")),
-    h("div", { class: "tracks" }, TRACK_IDS.map(t => trackCard(t, { doneNow: todayDone.has(t) }))),
-    statsRow(),
-    h("div", { class: "note" },
-      h("p", {}, h("b", {}, "Gali derinti. "), "Baigęs vieną treniruotę iš karto pasirinksi kitą, o apšilimas antrą kartą bus praleistas."),
-      h("p", {}, h("b", {}, "Tempimas, ne skausmas. "), "Jauti tempimą, bet ne aštrų skausmą sąnaryje. Nespyruokliuok laikydamas pozą."),
-      h("p", {}, "Kiekviena treniruotė turi 16 dienų ir 4 etapus. Daryk 3–5 kartus per savaitę ir visada sušilęs.")));
-}
-
 /* ---------- Treniruotės peržiūra ---------- */
 function renderSession(t, n) {
   const s = sess(t, n), tr = TRACKS[t];
@@ -1187,8 +1172,6 @@ function renderHealth() {
   const ws = sortedWeights(), last = ws[ws.length - 1], prev = ws[ws.length - 2], wd = weightDue(), hp = H_().profile;
   const goalInp = h("input", { id: "w-goal", type: "number", inputmode: "decimal", step: "0.1", value: hp.goal || "", placeholder: "kg", class: "mini",
     on: { change: e => { const v = parseFloat(String(e.target.value).replace(",", ".")); hp.goal = v >= 20 && v <= 300 ? v : null; save(); renderHealth(); } } });
-  const kcalInp = h("input", { id: "k-goal", type: "number", inputmode: "numeric", step: "50", value: hp.kcal, class: "mini",
-    on: { change: e => { const v = parseInt(e.target.value, 10); if (v >= 800 && v <= 6000) { hp.kcal = v; save(); } renderHealth(); } } });
   const total = dayKcal(), pct = Math.min(100, total / hp.kcal * 100), food = H_().food[iso()] || [];
   const dDay = healthDay || iso(), ds = doses(dDay);
   const weight = disc("h-weight", "Svoris", (wd.due ? "Laikas pasisverti" : "Kitas po " + wd.days + " d.") + (last ? " · " + kg(last.kg) + " kg" : ""), true,
@@ -1199,17 +1182,6 @@ function renderHealth() {
     h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Tikslo svoris"), h("small", {}, hp.goal && last ? "Liko " + kg(Math.abs(last.kg - hp.goal)) + " kg" : "Neprivaloma")), goalInp),
     ws.length ? h("div", { class: "hist" }, ws.slice(-5).reverse().map(w => h("div", { class: "r" }, h("span", {}, fmtDate(w.d)), h("b", { class: "num" }, kg(w.kg) + " kg")))) : null,
     h("button", { class: "btn" + (wd.due ? "" : " ghost") + " block", on: { click: openWeight } }, "Įrašyti svorį"));
-  const kcal = disc("h-kcal", "Kalorijos šiandien", total + " / " + hp.kcal + " kcal", true,
-    h("div", { class: "meter k" + (total > hp.kcal ? " over" : "") }, h("i", { style: "width:" + pct + "%" })),
-    h("p", { class: "muted num", style: "font-size:.88rem" }, total > hp.kcal ? "Viršyta " + (total - hp.kcal) + " kcal" : "Liko " + (hp.kcal - total) + " kcal"),
-    food.length ? h("div", { class: "hist" }, Object.keys(MEALS).filter(k => food.some(f => f.meal === k)).map(k => h("div", { class: "meal" },
-      h("p", { class: "eyebrow" }, MEALS[k] + " · " + food.filter(f => f.meal === k).reduce((s, f) => s + f.kcal, 0) + " kcal"),
-      food.filter(f => f.meal === k).map(f => h("div", { class: "r" }, h("span", {}, f.name),
-        h("span", { class: "rr" }, h("b", { class: "num" }, f.kcal + " kcal"), h("button", { class: "del", "aria-label": "Ištrinti " + f.name, on: { click: () => { H_().food[iso()] = food.filter(x => x.id !== f.id); save(); renderHealth(); } } }, icon("close"))))))))
-      : h("p", { class: "muted" }, "Šiandien dar nieko neįrašei."),
-    h("p", { class: "muted", style: "font-size:.82rem" }, "Vakar: " + dayKcal(iso(new Date(Date.now() - 864e5))) + " kcal"),
-    h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Dienos tikslas"), h("small", {}, "kcal per dieną")), kcalInp),
-    h("button", { class: "btn block", on: { click: () => openFood() } }, "+ Pridėti maistą"));
   const meds = H_().meds.length ? disc("h-meds", "Vaistai ir vitaminai", ds.filter(x => x.st === "y").length + " / " + ds.length + " išgerta", true,
     h("div", { class: "dayrow" }, h("span", { class: "muted" }, dDay === iso() ? "Šiandien" : "Diena: " + fmtDate(dDay)), h("input", { type: "date", value: dDay, max: iso(), "aria-label": "Pasirink dieną", on: { change: e => { healthDay = e.target.value || null; renderHealth(); } } })),
     ds.length ? h("div", { class: "ask" }, ds.map(x => doseQ(x, renderHealth, dDay))) : h("p", { class: "muted" }, "Tą dieną nieko vartoti nereikia."),
@@ -1221,7 +1193,7 @@ function renderHealth() {
       h("div", { class: "row2" }, h("button", { class: "btn ghost", on: { click: () => openMed(null, "med") } }, "+ Vaistas"), h("button", { class: "btn ghost", on: { click: () => openMed(null, "vit") } }, "+ Vitaminas"))) : medsQuestion());
   shell("health",
     h("header", {}, h("p", { class: "eyebrow" }, new Date().toLocaleDateString("lt-LT", { weekday: "long", month: "long", day: "numeric" })), h("h1", {}, "Sveikata")),
-    meds, weight, kcal,
+    meds, weight,
     h("p", { class: "muted", style: "font-size:.8rem" }, "Duomenys saugomi tik šiame telefone, šioje naršyklėje. Programėlė negali siųsti pranešimų, kai ji uždaryta, todėl klausia, kai ją atsidarai."));
 }
 
@@ -1462,6 +1434,7 @@ function renderNamai() {
   ];
   shell("namai",
     h("header", {}, h("p", { class: "eyebrow" }, open.length + (open.length === 1 ? " darbas" : " darbai")), h("h1", {}, "Namai")),
+    ...homeReminders(),
     h("section", { class: "panel" }, h("h3", {}, "Ką reikia padaryti namuose?"),
       field("Užduotis", text), field("Kada? (nebūtina)", date),
       h("button", { class: "btn block", on: { click: add } }, "+ Pridėti")),
@@ -1471,8 +1444,10 @@ function renderNamai() {
     doneRows.length ? disc("n-done", "Atlikta", doneRows.length + " įrašai", false, doneRows) : null);
 }
 
-/* ---------- Paskyra: asmeniniai duomenys ---------- */
+/* ---------- Paskyra: šeima, verslas, kelionės ---------- */
 const BLOOD = ["Nežinau", "A+", "A−", "B+", "B−", "AB+", "AB−", "0+", "0−"];
+const BIZ_FIELDS = [["name", "Įmonės pavadinimas"], ["code", "Įmonės kodas"], ["vat", "PVM mokėtojo kodas"], ["address", "Adresas"], ["phone", "Telefonas"], ["email", "El. paštas"], ["iban", "Banko sąskaita (IBAN)"], ["note", "Pastaba"]];
+let pMode = "asm";
 function bdayInfo(p) {
   if (!p.birth) return null;
   const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1481,46 +1456,90 @@ function bdayInfo(p) {
   if (n < today) n = new Date(now.getFullYear() + 1, m - 1, d);
   return { days: Math.round((n - today) / 864e5), turns: n.getFullYear() - y, on: iso(n) };
 }
-function personCard(p) {
-  return h("section", { class: "panel person" },
-    h("div", { class: "sec-h" }, h("div", { class: "mcol" }, h("h2", {}, p.name), p.rel ? h("small", { class: "muted" }, p.rel) : null),
-      p.blood && p.blood !== "Nežinau" ? h("span", { class: "blood", title: "Kraujo grupė" }, p.blood) : null),
-    p.birth ? h("div", { class: "prow" }, h("span", { class: "muted" }, "Gimimo data"), h("b", { class: "num" }, longDate(p.birth))) : null,
+function tripState(t) {
+  const today = iso();
+  if (t.to < today) return { txt: "Baigta", cls: "" };
+  if (t.from <= today) return { txt: "Vyksta dabar", cls: " l" };
+  const d = daysBetween(today, t.from);
+  return { txt: "Po " + d + " d.", cls: d <= 14 ? " s" : "" };
+}
+const prow2 = (name, sub, onClick) => h("button", { class: "prow2", on: { click: onClick } },
+  h("span", { class: "mcol" }, h("b", {}, name), sub ? h("small", { class: "muted" }, sub) : null), icon("next"));
+function openPersonInfo(p) {
+  const row = (l, v) => v ? h("div", { class: "prow" }, h("span", { class: "muted" }, l), h("b", { class: "num" }, v)) : null;
+  openPanel(p.name, h("div", { class: "fcol" },
+    p.rel ? h("p", { class: "muted" }, p.rel) : null,
+    p.where ? h("div", { class: "whereBox" }, h("small", { class: "muted" }, "Kur dabar yra"), h("b", {}, p.where), p.whereTs ? h("small", { class: "muted" }, "Atnaujinta " + fmtDate(p.whereTs)) : null)
+      : h("p", { class: "muted" }, "Kur dabar yra: nenurodyta"),
+    row("Gimimo data", p.birth ? longDate(p.birth) : ""),
+    row("Kraujo grupė", p.blood && p.blood !== "Nežinau" ? p.blood : ""),
     (p.phones || []).length ? h("div", { class: "phones" }, p.phones.map(x => h("a", { class: "phone", href: "tel:" + x.num.replace(/[^\d+]/g, "") },
       h("span", { class: "muted" }, x.label || "Telefonas"), h("b", { class: "num" }, x.num)))) : null,
-    p.note ? h("p", { class: "muted", style: "font-size:.9rem" }, p.note) : null,
-    h("button", { class: "btn ghost block", on: { click: () => openPerson(p) } }, "Redaguoti"));
+    p.note ? h("p", { class: "muted" }, p.note) : null,
+    h("button", { class: "btn block", on: { click: () => openPerson(p, "fam") } }, "Redaguoti")));
+}
+function asmBody(people, bd, trips) {
+  const upcoming = trips.filter(t => t.to >= iso());
+  return [
+    disc("k-fam", "Šeimos nariai", people.length ? people.length + (people.length === 1 ? " žmogus" : " žmonės") : "Nėra įrašų", true,
+      people.length ? people.map(p => prow2(p.name, [p.rel, p.where ? "dabar: " + p.where : null].filter(Boolean).join(" · ") || "Paspausk, kad pamatytum", () => openPersonInfo(p)))
+        : h("p", { class: "muted" }, "Įrašyk šeimos narius, jų kontaktus ir kur jie dabar yra."),
+      h("button", { class: "btn ghost block", on: { click: () => openPerson(null, "fam") } }, "+ Pridėti šeimos narį")),
+    disc("k-bd", "Gimtadieniai", bd.length ? bd[0].p.name + " · " + (bd[0].b.days === 0 ? "šiandien" : "po " + bd[0].b.days + " d.") : "Dar nėra gimimo datų", true,
+      bd.length ? h("div", { class: "hist" }, bd.map(({ p, b }) => h("div", { class: "r" },
+        h("span", { class: "mcol" }, h("b", {}, p.name), h("small", { class: "muted" }, fmtDate(b.on) + " · sulauks " + b.turns)),
+        h("span", { class: "tag" + (b.days <= 30 ? " s" : "") }, b.days === 0 ? "šiandien" : "po " + b.days + " d.")))) : h("p", { class: "muted" }, "Įrašyk gimimo datas, ir čia matysi artimiausius gimtadienius.")),
+    disc("k-trip", "Numatomos kelionės", upcoming.length ? upcoming.length + " būsimos" : "Nėra būsimų", true,
+      trips.length ? trips.map(t => { const st = tripState(t); return h("button", { class: "prow2", on: { click: () => openTrip(t) } },
+        h("span", { class: "mcol" }, h("b", {}, t.dest), h("small", { class: "muted" }, fmtDate(t.from) + " – " + fmtDate(t.to) + (t.who ? " · " + t.who : ""))),
+        h("span", { class: "tag" + st.cls }, st.txt)); }) : h("p", { class: "muted" }, "Čia matysi numatytas keliones."),
+      h("button", { class: "btn ghost block", on: { click: () => openTrip() } }, "+ Nauja kelionė")),
+  ];
+}
+function bizBody() {
+  const info = store.biz.info || {}, contacts = store.biz.contacts || [];
+  return [
+    disc("b-info", "Įmonės duomenys", info.name || "Nenurodyta", true,
+      info.name ? BIZ_FIELDS.filter(([k]) => info[k]).map(([k, l]) => h("div", { class: "prow" }, h("span", { class: "muted" }, l), h("b", { class: "num", style: "text-align:right" }, info[k])))
+        : h("p", { class: "muted" }, "Įrašyk įmonės pavadinimą, kodą ir sąskaitą."),
+      h("button", { class: "btn ghost block", on: { click: openBiz } }, "Redaguoti duomenis")),
+    disc("b-con", "Verslo kontaktai", contacts.length ? contacts.length + " įrašai" : "Nėra", true,
+      contacts.map(p => prow2(p.name, [p.rel, (p.phones || [])[0] ? p.phones[0].num : null].filter(Boolean).join(" · "), () => openPerson(p, "biz"))),
+      h("button", { class: "btn ghost block", on: { click: () => openPerson(null, "biz") } }, "+ Pridėti kontaktą")),
+  ];
 }
 function renderPaskyra() {
   const people = store.people.slice().sort((a, b) => (a.rel === "Aš" ? -1 : 0) - (b.rel === "Aš" ? -1 : 0) || a.name.localeCompare(b.name, "lt"));
   const bd = people.map(p => ({ p, b: bdayInfo(p) })).filter(x => x.b).sort((x, y) => x.b.days - y.b.days);
+  const trips = store.trips.slice().sort((a, b) => a.from < b.from ? -1 : 1);
+  const modes = h("div", { class: "chips sporttabs", role: "group", "aria-label": "Profilis" },
+    [["asm", "Asmeninis"], ["biz", "Verslo"]].map(([k, l]) => h("button", { "aria-pressed": pMode === k, on: { click: () => { pMode = k; renderPaskyra(); window.scrollTo(0, 0); } } }, l)));
   shell("paskyra",
-    h("header", {}, h("p", { class: "eyebrow" }, people.length + (people.length === 1 ? " žmogus" : " žmonės")), h("h1", {}, "Paskyra")),
-    disc("k-bd", "Gimtadieniai", bd.length ? bd[0].p.name + " · " + (bd[0].b.days === 0 ? "šiandien" : "po " + bd[0].b.days + " d.") : "Dar nėra gimimo datų", true,
-      bd.length ? h("div", { class: "hist" }, bd.map(({ p, b }) => h("div", { class: "r" },
-        h("span", { class: "mcol" }, h("b", {}, p.name), h("small", { class: "muted" }, fmtDate(b.on) + " · sulauks " + b.turns)),
-        h("span", { class: "tag" + (b.days <= 30 ? " s" : "") }, b.days === 0 ? "šiandien" : "po " + b.days + " d.")))) : h("p", { class: "muted" }, "Įrašyk žmonių gimimo datas, ir čia matysi artimiausius gimtadienius.")),
-    people.map(personCard),
-    h("button", { class: "btn block", on: { click: () => openPerson() } }, "+ Pridėti žmogų"));
+    h("header", {}, h("p", { class: "eyebrow" }, pMode === "biz" ? "Verslo profilis" : "Asmeninis profilis"), h("h1", {}, "Paskyra")),
+    modes,
+    ...(pMode === "biz" ? bizBody() : asmBody(people, bd, trips)));
 }
-function openPerson(p) {
-  const x = p ? JSON.parse(JSON.stringify(p)) : { id: uid(), name: "", rel: "", birth: "", blood: "Nežinau", phones: [], note: "" };
+function openPerson(p, kind) {
+  const biz = kind === "biz" || (p && p.kind === "biz");
+  const x = p ? JSON.parse(JSON.stringify(p)) : { id: uid(), name: "", rel: "", birth: "", blood: "Nežinau", where: "", phones: [], note: "" };
   x.phones = x.phones && x.phones.length ? x.phones : [{ label: "Mobilus", num: "" }];
   const box = h("div", { class: "fcol" });
   const draw = () => {
-    const name = h("input", { id: "p-name", type: "text", value: x.name, placeholder: "Vardas", autocomplete: "off", on: { input: e => { x.name = e.target.value; } } });
-    const rel = h("input", { id: "p-rel", type: "text", value: x.rel, placeholder: "pvz. Aš, mama, brolis, sutuoktinis", autocomplete: "off", on: { input: e => { x.rel = e.target.value; } } });
-    const birth = h("input", { id: "p-birth", type: "date", value: x.birth, on: { change: e => { x.birth = e.target.value; } } });
-    const blood = h("select", { id: "p-blood", on: { change: e => { x.blood = e.target.value; } } }, BLOOD.map(b => h("option", { value: b }, b)));
-    blood.value = x.blood;
+    const name = h("input", { id: "p-name", type: "text", value: x.name, placeholder: biz ? "Vardas, pavardė" : "Vardas", autocomplete: "off", on: { input: e => { x.name = e.target.value; } } });
+    const rel = h("input", { id: "p-rel", type: "text", value: x.rel, placeholder: biz ? "pvz. klientas, buhalterė" : "pvz. Aš, mama, brolis, sutuoktinis", autocomplete: "off", on: { input: e => { x.rel = e.target.value; } } });
     const note = h("input", { id: "p-note", type: "text", value: x.note, placeholder: "pvz. alergija, pastaba", autocomplete: "off", on: { input: e => { x.note = e.target.value; } } });
     const phones = h("div", { class: "fcol", style: "gap:8px" }, x.phones.map((ph, i) => h("div", { class: "phrow" },
       h("input", { type: "text", value: ph.label, placeholder: "Pavadinimas", "aria-label": "Telefono pavadinimas", on: { input: e => { ph.label = e.target.value; } } }),
       h("input", { type: "tel", value: ph.num, placeholder: "+370 600 00000", "aria-label": "Telefono numeris", on: { input: e => { ph.num = e.target.value; } } }),
       x.phones.length > 1 ? h("button", { class: "del", "aria-label": "Pašalinti telefoną", on: { click: () => { x.phones.splice(i, 1); draw(); } } }, icon("close")) : null)));
+    const personal = biz ? [] : [
+      field("Gimimo data", h("input", { id: "p-birth", type: "date", value: x.birth, on: { change: e => { x.birth = e.target.value; } } })),
+      field("Kraujo grupė", (() => { const s = h("select", { id: "p-blood", on: { change: e => { x.blood = e.target.value; } } }, BLOOD.map(b => h("option", { value: b }, b))); s.value = x.blood; return s; })()),
+      field("Kur dabar yra?", h("input", { id: "p-where", type: "text", value: x.where || "", placeholder: "pvz. Vilniuje, darbe, Italijoje", autocomplete: "off", on: { input: e => { x.where = e.target.value; } } })),
+    ];
     const err = h("p", { class: "err", hidden: "" });
     rc(box,
-      field("Vardas", name), field("Kas tai? (aš, mama, brolis...)", rel), field("Gimimo data", birth), field("Kraujo grupė", blood),
+      field("Vardas", name), field(biz ? "Pareigos" : "Kas tai? (aš, mama, brolis...)", rel), ...personal,
       h("p", { class: "eyebrow" }, "Telefonai"), phones,
       h("button", { class: "link", style: "align-self:flex-start", on: { click: () => { x.phones.push({ label: "", num: "" }); draw(); } } }, "+ Pridėti telefoną"),
       field("Pastaba", note), err,
@@ -1528,15 +1547,51 @@ function openPerson(p) {
         if (!x.name.trim()) { err.textContent = "Įrašyk vardą."; err.hidden = false; return; }
         x.name = x.name.trim();
         x.phones = x.phones.filter(ph => ph.num.trim()).map(ph => ({ label: ph.label.trim() || "Telefonas", num: ph.num.trim() }));
-        store.people = store.people.filter(q => q.id !== x.id).concat(x); save(); refresh();
+        if (!biz && (!p || p.where !== x.where)) x.whereTs = x.where ? iso() : null;
+        if (biz) { x.kind = "biz"; store.biz.contacts = store.biz.contacts.filter(q => q.id !== x.id).concat(x); }
+        else store.people = store.people.filter(q => q.id !== x.id).concat(x);
+        save(); refresh();
       } } }, p ? "Išsaugoti" : "Pridėti"),
       p ? h("button", { class: "btn ghost block danger", on: { click: e => {
         const b = e.currentTarget; if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = "Spausk dar kartą, kad ištrintum"; return; }
-        store.people = store.people.filter(q => q.id !== x.id); save(); refresh();
+        if (biz) store.biz.contacts = store.biz.contacts.filter(q => q.id !== x.id); else store.people = store.people.filter(q => q.id !== x.id);
+        save(); refresh();
       } } }, "Ištrinti") : null);
   };
   draw();
-  openPanel(p ? "Redaguoti" : "Naujas žmogus", box);
+  openPanel(p ? "Redaguoti" : biz ? "Naujas kontaktas" : "Naujas šeimos narys", box);
+}
+function openBiz() {
+  const info = store.biz.info || {};
+  const inputs = BIZ_FIELDS.map(([k, l]) => [k, h("input", { id: "b-" + k, type: "text", value: info[k] || "", autocomplete: "off" }), l]);
+  const err = h("p", { class: "err", hidden: "" });
+  openPanel("Įmonės duomenys", h("div", { class: "fcol" }, inputs.map(([, inp, l]) => field(l, inp)), err,
+    h("button", { class: "btn block", on: { click: () => {
+      const v = {}; inputs.forEach(([k, inp]) => { v[k] = inp.value.trim(); });
+      if (!v.name) { err.textContent = "Įrašyk įmonės pavadinimą."; err.hidden = false; return; }
+      store.biz.info = v; save(); refresh();
+    } } }, "Išsaugoti")));
+}
+function openTrip(t) {
+  const x = t ? Object.assign({}, t) : { id: uid(), dest: "", from: iso(), to: iso(), who: "", note: "" };
+  const dest = h("input", { id: "t-dest", type: "text", value: x.dest, placeholder: "pvz. Roma, Italija", autocomplete: "off" });
+  const from = h("input", { id: "t-from", type: "date", value: x.from });
+  const to = h("input", { id: "t-to", type: "date", value: x.to });
+  const who = h("input", { id: "t-who", type: "text", value: x.who || "", placeholder: "su kuo (nebūtina)", autocomplete: "off" });
+  const note = h("input", { id: "t-note", type: "text", value: x.note || "", placeholder: "pastaba (nebūtina)", autocomplete: "off" });
+  const err = h("p", { class: "err", hidden: "" });
+  openPanel(t ? "Kelionė" : "Nauja kelionė", h("div", { class: "fcol" },
+    field("Kur vyksti?", dest), field("Nuo", from), field("Iki", to), field("Su kuo", who), field("Pastaba", note), err,
+    h("button", { class: "btn block", on: { click: () => {
+      x.dest = dest.value.trim(); x.from = from.value; x.to = to.value; x.who = who.value.trim(); x.note = note.value.trim();
+      if (!x.dest) { err.textContent = "Įrašyk, kur vyksti."; err.hidden = false; return; }
+      if (!x.from || !x.to || x.to < x.from) { err.textContent = "Data „iki“ turi būti ne ankstesnė nei „nuo“."; err.hidden = false; return; }
+      store.trips = store.trips.filter(q => q.id !== x.id).concat(x); save(); refresh();
+    } } }, t ? "Išsaugoti" : "Pridėti kelionę"),
+    t ? h("button", { class: "btn ghost block danger", on: { click: e => {
+      const b = e.currentTarget; if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = "Spausk dar kartą, kad ištrintum"; return; }
+      store.trips = store.trips.filter(q => q.id !== x.id); save(); refresh();
+    } } }, "Ištrinti") : null));
 }
 
 /* ---------- Praėjusių treniruočių žymėjimas (Sportas → Pažanga) ---------- */
@@ -1756,20 +1811,14 @@ function finish() {
   P_.phase = "fin";
   const { t, n } = P_, min = Math.max(1, Math.round((Date.now() - P_.start) / 60000));
   store.done[dkeyOf(t, n)] = Date.now();
-  const entry = { track: t, n, ts: Date.now(), min, feel: null };
-  store.log.push(entry); save();
+  store.log.push({ track: t, n, ts: Date.now(), min, feel: null }); save();
   beep(880, .15); setTimeout(() => beep(1320, .3), 180); buzz([100, 60, 100, 60, 200]);
-  const feel = h("div", { class: "feel", role: "group", "aria-label": "Kaip sekėsi" },
-    [["l", "Lengva"], ["g", "Gerai"], ["s", "Sunku"]].map(([k, l]) => h("button", { "aria-pressed": "false", on: { click: e => {
-      entry.feel = k; save(); feel.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === e.currentTarget)));
-    } } }, l)));
   const todayDone = new Set(store.log.filter(l => dkey(l.ts) === dkey(Date.now())).map(l => l.track));
   const others = TRACK_IDS.filter(x => !todayDone.has(x));
   P_.root.replaceChildren(h("div", { class: "p-in", style: "overflow-y:auto" }, h("div", { class: "fin" },
     h("div", { class: "badge" }, icon("check")),
     h("div", {}, h("h1", {}, TRACKS[t].n + " atlikta!"),
       h("p", { class: "muted", style: "margin-top:6px" }, (n === SESS ? "Testas" : "Treniruotė " + n) + " · " + min + " min · serija " + streak() + " d.")),
-    h("p", { class: "eyebrow" }, "Kaip sekėsi?"), feel,
     others.length ? h("div", { class: "nextq" },
       h("h2", {}, "Ką darysi toliau?"),
       h("p", { class: "muted" }, "Raumenys jau sušilę, todėl apšilimą praleisime."),
