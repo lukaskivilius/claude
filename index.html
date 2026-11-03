@@ -403,6 +403,7 @@ i.cr{width:7px;height:7px;border-radius:2px;background:var(--warn)}
 .prow2 .mcol{min-width:0}
 .prow2 .ico{color:var(--muted);width:18px;height:18px;flex:none}
 .whereBox{display:flex;flex-direction:column;gap:2px;background:var(--accent-soft);border-radius:14px;padding:12px 14px}
+.skipb{border:0;background:var(--surface-2);color:var(--ink);border-radius:10px;padding:7px 10px;font-weight:700;font-size:.8rem;flex:none}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{font-size:.86rem}.ctrl .main{width:64px;height:64px}.ring .lbl small{font-size:.58rem;letter-spacing:.04em}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -1182,9 +1183,7 @@ function renderHealth() {
     h("div", { class: "set" }, h("div", { class: "t" }, h("b", {}, "Tikslo svoris"), h("small", {}, hp.goal && last ? "Liko " + kg(Math.abs(last.kg - hp.goal)) + " kg" : "Neprivaloma")), goalInp),
     ws.length ? h("div", { class: "hist" }, ws.slice(-5).reverse().map(w => h("div", { class: "r" }, h("span", {}, fmtDate(w.d)), h("b", { class: "num" }, kg(w.kg) + " kg")))) : null,
     h("button", { class: "btn" + (wd.due ? "" : " ghost") + " block", on: { click: openWeight } }, "Įrašyti svorį"));
-  const meds = H_().meds.length ? disc("h-meds", "Vaistai ir vitaminai", ds.filter(x => x.st === "y").length + " / " + ds.length + " išgerta", true,
-    h("div", { class: "dayrow" }, h("span", { class: "muted" }, dDay === iso() ? "Šiandien" : "Diena: " + fmtDate(dDay)), h("input", { type: "date", value: dDay, max: iso(), "aria-label": "Pasirink dieną", on: { change: e => { healthDay = e.target.value || null; renderHealth(); } } })),
-    ds.length ? h("div", { class: "ask" }, ds.map(x => doseQ(x, renderHealth, dDay))) : h("p", { class: "muted" }, "Tą dieną nieko vartoti nereikia."),
+  const meds = H_().meds.length ? disc("h-meds", "Vaistai ir vitaminai", H_().meds.length + (H_().meds.length === 1 ? " įrašas" : " įrašai") + " · vartojimas Namuose", true,
     h("p", { class: "eyebrow", style: "margin-top:4px" }, "Mano sąrašas"),
     h("div", { class: "hist" }, H_().meds.map(m => { const [sc, co] = courseText(m); return h("button", { class: "r medrow" + (m.end && m.end < iso() ? " ended" : ""), on: { click: () => openMed(m) } },
       h("span", { class: "mcol" }, h("b", {}, m.name, h("span", { class: "kind" }, m.kind === "vit" ? "vitaminas" : "vaistas")), h("small", { class: "muted" }, sc), h("small", { class: "muted" }, co)), icon("next")); })),
@@ -1198,24 +1197,6 @@ function renderHealth() {
 }
 
 /* priminimai pradžios ekrane ir atsidarius programėlę */
-function homeReminders() {
-  const carOut = carAlerts().map(a => h("button", { class: "remind" + (a.lvl > 1 ? " warn" : ""), on: { click: () => go("transportas") } }, h("div", {}, h("b", {}, "Transportas"), h("small", {}, a.t)), icon("next")));
-  const out = [], wd = weightDue(), due = dueDoses();
-  if (!H_().medsAsked) out.push(medsQuestion());
-  if (due.length) out.push(h("section", { class: "panel ask-card" }, h("p", { class: "eyebrow" }, "Vaistai"), h("h3", {}, "Ar išgėrei vaistus ir vitaminus?"),
-    h("div", { class: "ask" }, due.map(x => doseQ(x, () => route())))));
-  if (wd.due) out.push(h("button", { class: "remind", on: { click: openWeight } },
-    h("div", {}, h("b", {}, "Laikas pasisverti"), h("small", {}, wd.days === null ? "Įrašyk pradinį svorį" : "Praėjo savaitė nuo paskutinio svėrimo")), icon("next")));
-  return out.concat(carOut);
-}
-let checkedIn = false;
-function checkIn() {
-  if (checkedIn || !store.lvl) return; checkedIn = true;
-  const due = dueDoses();
-  if (due.length) openPanel("Ar išgėrei?", h("p", { class: "muted" }, "Pažymėk, ką jau išgėrei šiandien."),
-    h("div", { class: "ask" }, due.map(x => doseQ(x))), h("button", { class: "btn block", on: { click: refresh } }, "Gerai"));
-  else if (weightDue().due && sortedWeights().length) openWeight();
-}
 /* ---------- Transportas ---------- */
 const OIL_STEP = 15000;
 const km = n => (n == null || isNaN(n) ? "–" : Math.round(n).toLocaleString("lt-LT") + " km");
@@ -1394,12 +1375,31 @@ function carAlerts() {
   return out;
 }
 /* ---------- Namai: namų darbai ---------- */
+/* ---------- Namai: darbai, vaistai, transporto terminai ---------- */
+/* automatiniai įrašai: technikinė apžiūra ir draudimo / kiti datų laukeliai, kurie baigiasi per 30 d. */
+function autoItems() {
+  const out = [];
+  for (const c of store.cars) {
+    if (c.insp && inspState(c).d <= 30) out.push({ key: c.id + "|" + c.insp, title: c.name + ": nuvažiuoti į technikinę apžiūrą", due: c.insp, d: inspState(c).d });
+    for (const f of store.carFields.filter(x => x.type === "date")) {
+      const v = (c.f || {})[f.id];
+      if (v && dateState(v).d <= 30) out.push({ key: c.id + "|" + f.id + "|" + v, title: c.name + ": " + f.name.toLowerCase(), due: v, d: dateState(v).d });
+    }
+  }
+  return out.filter(x => !store.home.auto[x.key]);
+}
+function unmarkDose(key) { const t = H_().taken[iso()]; if (t) delete t[key]; save(); }
 function renderNamai() {
   const H = store.home, t0 = iso();
-  const auto = store.cars.filter(c => c.insp && inspState(c).d <= 30 && !H.auto[c.id + "|" + c.insp]);
+  const autos = autoItems();
+  const dRows = doses(t0);
+  const openD = dRows.filter(x => !x.st), doneD = dRows.filter(x => x.st);
   const open = H.tasks.filter(x => !x.done).sort((a, b) => (a.date || "9999") < (b.date || "9999") ? -1 : 1);
   const doneT = H.tasks.filter(x => x.done);
-  const doneA = store.cars.filter(c => c.insp && H.auto[c.id + "|" + c.insp]);
+  const decided = Object.keys(H.auto).map(k => {
+    const r = typeof H.auto[k] === "string" ? { v: H.auto[k], title: "Technikinė apžiūra" } : H.auto[k];
+    return Object.assign({ key: k }, r);
+  }).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const text = h("input", { id: "n-text", type: "text", placeholder: "pvz. sutvarkyti tualetą", autocomplete: "off" });
   const date = h("input", { id: "n-date", type: "date" });
   const add = () => {
@@ -1407,41 +1407,39 @@ function renderNamai() {
     H.tasks.push({ id: uid(), text: v, date: date.value || null, done: false }); save(); renderNamai();
   };
   text.addEventListener("keydown", e => { if (e.key === "Enter") add(); });
-  const decide = (c, v) => { H.auto[c.id + "|" + c.insp] = v; save(); renderNamai(); };
-  const autoRow = c => {
-    const is = inspState(c);
-    return h("div", { class: "task auto" + (is.d < 0 ? " late" : "") },
-      h("div", { class: "tbody2" }, h("b", {}, c.name + ": nuvažiuoti į technikinę apžiūrą"),
-        h("small", { class: is.d < 0 ? "warnt" : "muted" }, is.d < 0 ? "Galiojimas pasibaigė prieš " + -is.d + " d." : "Galioja iki " + longDate(c.insp) + " · liko " + is.d + " d.")),
-      h("div", { class: "decide" },
-        h("button", { class: "y", on: { click: () => decide(c, "done") } }, icon("check"), "Padariau"),
-        h("button", { class: "n", on: { click: () => decide(c, "skip") } }, "Nedarysiu")));
-  };
-  const taskRow = x => {
-    const late = x.date && x.date < t0;
-    return h("div", { class: "task" + (late ? " late" : "") },
-      h("button", { class: "check", "aria-label": "Pažymėti atliktą", on: { click: () => { x.done = true; save(); renderNamai(); } } }),
-      h("div", { class: "tbody2" }, h("b", {}, x.text), x.date ? h("small", { class: late ? "warnt" : "muted" }, (late ? "Vėluoja nuo " : "Iki ") + fmtDate(x.date)) : null),
-      h("button", { class: "del", "aria-label": "Ištrinti", on: { click: () => { H.tasks = H.tasks.filter(y => y !== x); save(); renderNamai(); } } }, icon("close")));
-  };
-  const doneRows = [
-    ...doneT.map(x => h("div", { class: "task done" }, h("span", { class: "mark" }, icon("check")), h("div", { class: "tbody2" }, h("b", {}, x.text)),
-      h("button", { class: "link", on: { click: () => { x.done = false; save(); renderNamai(); } } }, "Atšaukti"))),
-    ...doneA.map(c => { const d = H.auto[c.id + "|" + c.insp]; return h("div", { class: "task done" },
-      h("span", { class: "mark" + (d === "skip" ? " skip" : "") }, icon(d === "skip" ? "close" : "check")),
-      h("div", { class: "tbody2" }, h("b", {}, c.name + ": technikinė apžiūra"), h("small", { class: "muted" }, d === "skip" ? "Nedarysiu" : "Padaryta")),
-      h("button", { class: "link", on: { click: () => { if (d === "done") go("transportas"); else { delete H.auto[c.id + "|" + c.insp]; save(); renderNamai(); } } } }, d === "done" ? "Atnaujinti datą" : "Grąžinti")); }),
-  ];
+  const decide = (it, v) => { H.auto[it.key] = { v, title: it.title, ts: Date.now() }; save(); renderNamai(); };
+  const row = o => h("div", { class: "task" + (o.late ? " late" : "") },
+    h("button", { class: "check", "aria-label": o.okLabel, on: { click: o.ok } }),
+    h("div", { class: "tbody2" }, h("b", {}, o.title), o.sub ? h("small", { class: o.warn ? "warnt" : "muted" }, o.sub) : null),
+    o.no ? h("button", { class: "skipb", on: { click: o.no } }, o.noLabel) : null);
+  const doneRow = (title, sub, label, fn, skip) => h("div", { class: "task done" },
+    h("span", { class: "mark" + (skip ? " skip" : "") }, icon(skip ? "close" : "check")),
+    h("div", { class: "tbody2" }, h("b", {}, title), h("small", { class: "muted" }, sub)),
+    h("button", { class: "link", on: { click: fn } }, label));
+  const nDone = doneD.length + decided.length + doneT.length;
   shell("namai",
-    h("header", {}, h("p", { class: "eyebrow" }, open.length + (open.length === 1 ? " darbas" : " darbai")), h("h1", {}, "Namai")),
-    ...homeReminders(),
+    h("header", {}, h("p", { class: "eyebrow" }, (openD.length + autos.length + open.length) + " darbai šiandien"), h("h1", {}, "Namai")),
     h("section", { class: "panel" }, h("h3", {}, "Ką reikia padaryti namuose?"),
       field("Užduotis", text), field("Kada? (nebūtina)", date),
       h("button", { class: "btn block", on: { click: add } }, "+ Pridėti")),
-    auto.length ? h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Iš transporto"), auto.map(autoRow)) : null,
+    openD.length ? h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Vaistai ir vitaminai šiandien"),
+      openD.map(x => row({ title: x.med.name, sub: (x.med.kind === "vit" ? "Vitaminas · " : "") + x.slot.label,
+        okLabel: "Išgėriau", ok: () => { markDose(x.key, "y"); renderNamai(); },
+        noLabel: "Ne", no: () => { markDose(x.key, "n"); renderNamai(); } }))) : null,
+    autos.length ? h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Iš transporto"),
+      autos.map(it => row({ title: it.title, warn: it.d < 0,
+        sub: it.d < 0 ? "Pasibaigė prieš " + -it.d + " d." : "Galioja iki " + longDate(it.due) + " · liko " + it.d + " d.",
+        okLabel: "Padariau", ok: () => decide(it, "done"), noLabel: "Nedarysiu", no: () => decide(it, "skip") }))) : null,
     h("section", { class: "list" }, h("p", { class: "eyebrow" }, "Darbai"),
-      open.length ? open.map(taskRow) : h("p", { class: "muted" }, "Kol kas nieko neužrašyta.")),
-    doneRows.length ? disc("n-done", "Atlikta", doneRows.length + " įrašai", false, doneRows) : null);
+      open.length ? open.map(x => { const late = x.date && x.date < t0; return row({ title: x.text, late, warn: late,
+        sub: x.date ? (late ? "Vėluoja nuo " : "Iki ") + fmtDate(x.date) : null,
+        okLabel: "Pažymėti atliktą", ok: () => { x.done = true; save(); renderNamai(); },
+        noLabel: "Ištrinti", no: () => { H.tasks = H.tasks.filter(y => y !== x); save(); renderNamai(); } }); })
+        : h("p", { class: "muted" }, "Kol kas nieko neužrašyta.")),
+    nDone ? disc("n-done", "Atlikta", nDone + " įrašai", false,
+      doneD.map(x => doneRow(x.med.name, (x.st === "y" ? "išgerta" : "neišgerta") + " · " + x.slot.label, "Atšaukti", () => { unmarkDose(x.key); renderNamai(); }, x.st !== "y")),
+      decided.map(d => doneRow(d.title, d.v === "done" ? "Padaryta" : "Nedarysiu", "Grąžinti", () => { delete H.auto[d.key]; save(); renderNamai(); }, d.v !== "done")),
+      doneT.map(x => doneRow(x.text, "Atlikta", "Atšaukti", () => { x.done = false; save(); renderNamai(); }, false))) : null);
 }
 
 /* ---------- Paskyra: šeima, verslas, kelionės ---------- */
@@ -1469,8 +1467,6 @@ function openPersonInfo(p) {
   const row = (l, v) => v ? h("div", { class: "prow" }, h("span", { class: "muted" }, l), h("b", { class: "num" }, v)) : null;
   openPanel(p.name, h("div", { class: "fcol" },
     p.rel ? h("p", { class: "muted" }, p.rel) : null,
-    p.where ? h("div", { class: "whereBox" }, h("small", { class: "muted" }, "Kur dabar yra"), h("b", {}, p.where), p.whereTs ? h("small", { class: "muted" }, "Atnaujinta " + fmtDate(p.whereTs)) : null)
-      : h("p", { class: "muted" }, "Kur dabar yra: nenurodyta"),
     row("Gimimo data", p.birth ? longDate(p.birth) : ""),
     row("Kraujo grupė", p.blood && p.blood !== "Nežinau" ? p.blood : ""),
     (p.phones || []).length ? h("div", { class: "phones" }, p.phones.map(x => h("a", { class: "phone", href: "tel:" + x.num.replace(/[^\d+]/g, "") },
@@ -1482,7 +1478,7 @@ function asmBody(people, bd, trips) {
   const upcoming = trips.filter(t => t.to >= iso());
   return [
     disc("k-fam", "Šeimos nariai", people.length ? people.length + (people.length === 1 ? " žmogus" : " žmonės") : "Nėra įrašų", true,
-      people.length ? people.map(p => prow2(p.name, [p.rel, p.where ? "dabar: " + p.where : null].filter(Boolean).join(" · ") || "Paspausk, kad pamatytum", () => openPersonInfo(p)))
+      people.length ? people.map(p => prow2(p.name, [p.rel].filter(Boolean).join(" · ") || "Paspausk, kad pamatytum", () => openPersonInfo(p)))
         : h("p", { class: "muted" }, "Įrašyk šeimos narius, jų kontaktus ir kur jie dabar yra."),
       h("button", { class: "btn ghost block", on: { click: () => openPerson(null, "fam") } }, "+ Pridėti šeimos narį")),
     disc("k-bd", "Gimtadieniai", bd.length ? bd[0].p.name + " · " + (bd[0].b.days === 0 ? "šiandien" : "po " + bd[0].b.days + " d.") : "Dar nėra gimimo datų", true,
@@ -1535,7 +1531,6 @@ function openPerson(p, kind) {
     const personal = biz ? [] : [
       field("Gimimo data", h("input", { id: "p-birth", type: "date", value: x.birth, on: { change: e => { x.birth = e.target.value; } } })),
       field("Kraujo grupė", (() => { const s = h("select", { id: "p-blood", on: { change: e => { x.blood = e.target.value; } } }, BLOOD.map(b => h("option", { value: b }, b))); s.value = x.blood; return s; })()),
-      field("Kur dabar yra?", h("input", { id: "p-where", type: "text", value: x.where || "", placeholder: "pvz. Vilniuje, darbe, Italijoje", autocomplete: "off", on: { input: e => { x.where = e.target.value; } } })),
     ];
     const err = h("p", { class: "err", hidden: "" });
     rc(box,
@@ -1651,7 +1646,7 @@ function openAssess() {
   document.body.append(A_.root); document.body.style.overflow = "hidden";
   renderAssess();
 }
-function closeAssess() { if (!A_) return; A_.root.remove(); A_ = null; document.body.style.overflow = ""; route(); checkIn(); }
+function closeAssess() { if (!A_) return; A_.root.remove(); A_ = null; document.body.style.overflow = ""; route(); }
 function setLevel(l, ans) { store.lvl = l; if (ans) store.assess = { ans, ts: Date.now() }; save(); rebuild(); }
 function renderAssess() {
   const r = A_.root, first = !store.lvl;
@@ -1828,7 +1823,6 @@ function finish() {
 }
 
 route();
-checkIn();
 if (!store.lvl) { openAssess(); A_.i = -1; renderAssess(); }
 </script>
 </body>
