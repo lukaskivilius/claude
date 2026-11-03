@@ -346,6 +346,16 @@ i.wt{width:6px;height:6px;transform:rotate(45deg);background:var(--accent);borde
 .remind.warn{background:var(--warn-soft)}
 .remind.warn .ico{color:var(--warn)}
 i.cr{width:7px;height:7px;border-radius:2px;background:var(--warn)}
+.carhead{border:0;background:none;padding:0;width:100%;text-align:left;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.carhead .chev{color:var(--muted);display:inline-flex;transition:transform .2s;transform:rotate(90deg)}
+.carhead .chev.up{transform:rotate(-90deg)}
+.car.closed{gap:6px}
+.csum{font-size:.85rem}
+.dotw{width:10px;height:10px;border-radius:50%;background:#E0A021;flex:none}
+.dotw.bad{background:var(--warn)}
+.cbtn{border-left:0;border-right:0;border-bottom:0;background:none;width:100%;text-align:left;color:var(--ink);font:inherit;padding-inline:0}
+.cbtn>.ico{color:var(--muted);width:18px;height:18px;flex:none}
+.addfield{border:1.5px dashed var(--line);background:none;border-radius:14px;padding:11px;font-weight:700;color:var(--accent);font-size:.9rem}
 @media (max-height:680px){.ring{width:92px;height:92px}.ring .lbl b{font-size:1.8rem}.p-desc{font-size:.86rem}.ctrl .main{width:64px;height:64px}.ring .lbl small{font-size:.58rem;letter-spacing:.04em}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -608,10 +618,10 @@ requestAnimationFrame(loop);
 const KEY = "spagatas.v3";
 const DEF_SET = { sound: true, vib: true, level: 1 };
 const DEF_HEALTH = () => ({ profile: { goal: null, kcal: 2000 }, weights: [], food: {}, meds: [], medsAsked: false, taken: {} });
-let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET), health: DEF_HEALTH(), cars: [] };
+let store = { done: {}, log: [], lvl: null, assess: null, settings: Object.assign({}, DEF_SET), health: DEF_HEALTH(), cars: [], carFields: [] };
 try {
   const s = JSON.parse(localStorage.getItem(KEY));
-  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}), health: Object.assign(DEF_HEALTH(), s.health || {}), cars: s.cars || [] };
+  if (s && s.done) store = { done: s.done, log: s.log || [], lvl: s.lvl || null, assess: s.assess || null, settings: Object.assign({}, DEF_SET, s.settings || {}), health: Object.assign(DEF_HEALTH(), s.health || {}), cars: s.cars || [], carFields: s.carFields || [] };
   else { const o = JSON.parse(localStorage.getItem("spagatas.v2")) || JSON.parse(localStorage.getItem("spagatas.v1")); if (o) { store.lvl = o.lvl || null; store.assess = o.assess || null; store.settings = Object.assign({}, DEF_SET, o.settings || {}); } }
 } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
@@ -1233,7 +1243,7 @@ function dayInfo(day) {
   const ds = doses(day);
   const taken = ds.filter(x => x.st === "y").length;
   const w = H_().weights.find(x => x.d === day);
-  const car = []; for (const c of store.cars) { if (c.insp === day) car.push(c.name + ": baigiasi technikinė apžiūra"); for (const o of c.oil || []) if (o.d === day) car.push(c.name + ": keisti tepalai ties " + km(o.km)); }
+  const car = []; for (const c of store.cars) { if (c.insp === day) car.push(c.name + ": baigiasi technikinė apžiūra"); for (const o of c.oil || []) if (o.d === day) car.push(c.name + ": keisti tepalai ties " + km(o.km)); for (const f of store.carFields) if (f.type === "date" && (c.f || {})[f.id] === day) car.push(c.name + ": " + f.name.toLowerCase()); }
   return { car, tr, planned: !!time, time, missed: !!time && !tr.length && day < today, ds, taken, w, kcal: dayKcal(day) };
 }
 function renderCal() {
@@ -1371,15 +1381,84 @@ function openKm(car) {
       const c = store.cars.find(x => x.id === car.id); c.km = k; c.kmD = iso(); save(); refresh();
     } } }, "Išsaugoti")));
 }
+/* papildomi laukeliai (bendri visoms transporto priemonėms) */
+const FTYPE = { date: "Data (galioja iki)", km: "Rida / skaičius", text: "Tekstas" };
+const dateState = v => {
+  if (!v) return { cls: "", txt: "Neįrašyta", lvl: 0 };
+  const d = daysBetween(iso(), v);
+  if (d < 0) return { cls: " s", txt: "Pasibaigė prieš " + -d + " d.", lvl: 2, d };
+  if (d <= 30) return { cls: " s", txt: "Liko " + d + " d.", lvl: 1, d };
+  return { cls: " l", txt: "Galioja", lvl: 0, d };
+};
+const longDate = v => fromIso(v).toLocaleDateString("lt-LT", { year: "numeric", month: "long", day: "numeric" });
+const carWorst = c => Math.max(inspState(c).lvl, oilState(c).lvl, ...store.carFields.filter(f => f.type === "date").map(f => dateState((c.f || {})[f.id]).lvl));
+const carOpen = new Set();
+function openField(fld, car) {
+  const f = fld ? Object.assign({}, field) : { id: uid(), name: "", type: "date" };
+  const box = h("div", { class: "fcol" });
+  const draw = () => {
+    const name = h("input", { id: "cf-name", type: "text", value: f.name, placeholder: "pvz. Draudimo pabaiga", autocomplete: "off", on: { input: e => { f.name = e.target.value; } } });
+    const err = h("p", { class: "err", hidden: "" });
+    rc(box,
+      fld ? null : h("p", { class: "muted" }, "Laukelis atsiras visoms tavo transporto priemonėms. Kiekvienai įrašysi savo reikšmę."),
+      field("Laukelio pavadinimas", name),
+      h("p", { class: "eyebrow" }, "Tipas"),
+      h("div", { class: "chips wrapc" }, Object.keys(FTYPE).map(k => h("button", { "aria-pressed": f.type === k, on: { click: () => { f.type = k; draw(); } } }, FTYPE[k]))),
+      f.type === "date" ? h("p", { class: "muted", style: "font-size:.85rem" }, "Likus 30 dienų programėlė primins pradžios ekrane ir pažymės datą kalendoriuje.") : null,
+      err,
+      h("button", { class: "btn block", on: { click: () => {
+        if (!f.name.trim()) { err.textContent = "Įrašyk laukelio pavadinimą."; err.hidden = false; return; }
+        f.name = f.name.trim();
+        const i = store.carFields.findIndex(x => x.id === f.id);
+        if (i >= 0) store.carFields[i] = f; else store.carFields.push(f);
+        save();
+        if (!fld && car) { const c = store.cars.find(x => x.id === car.id); carOpen.add(c.id); openFieldValue(c, f); } else refresh();
+      } } }, fld ? "Išsaugoti" : "Sukurti laukelį"),
+      fld ? h("button", { class: "btn ghost block danger", on: { click: e => {
+        const b = e.currentTarget; if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = "Spausk dar kartą: laukelis dings visoms transporto priemonėms"; return; }
+        store.carFields = store.carFields.filter(x => x.id !== f.id); store.cars.forEach(c => { if (c.f) delete c.f[f.id]; }); save(); refresh();
+      } } }, "Ištrinti laukelį") : null);
+  };
+  draw();
+  openPanel(fld ? "Redaguoti laukelį" : "Naujas laukelis", box);
+}
+function openFieldValue(car, f) {
+  const cur = (car.f || {})[f.id];
+  const inp = f.type === "date" ? h("input", { id: "cv", type: "date", value: cur || "" })
+    : f.type === "km" ? h("input", { id: "cv", type: "number", inputmode: "numeric", value: cur != null ? cur : "", placeholder: "skaičius" })
+    : h("input", { id: "cv", type: "text", value: cur || "", autocomplete: "off" });
+  openPanel(f.name + " · " + car.name, h("div", { class: "fcol" },
+    field(f.name, inp),
+    h("button", { class: "btn block", on: { click: () => {
+      const c = store.cars.find(x => x.id === car.id); c.f = c.f || {};
+      const v = f.type === "km" ? numIn(inp.value) : (inp.value || "").trim();
+      if (v === "" || v == null) delete c.f[f.id]; else c.f[f.id] = v;
+      carOpen.add(c.id); save(); refresh();
+    } } }, "Išsaugoti"),
+    h("button", { class: "btn ghost block", on: { click: () => openField(f) } }, "Pervadinti ar ištrinti laukelį")));
+}
+function fieldRow(c, f) {
+  const v = (c.f || {})[f.id];
+  const st = f.type === "date" ? dateState(v) : null;
+  return h("button", { class: "crow cbtn", on: { click: () => openFieldValue(c, f) } },
+    h("div", { class: "mcol" }, h("b", {}, f.name),
+      h("small", { class: "muted" }, v == null || v === "" ? "Neįrašyta, paspausk ir įrašyk" : f.type === "date" ? "Iki " + longDate(v) : f.type === "km" ? km(v) : v)),
+    st && v ? h("span", { class: "tag" + st.cls }, st.txt) : icon("next"));
+}
 function carCard(c) {
-  const is = inspState(c), os = oilState(c), o = lastOil(c);
+  const is = inspState(c), os = oilState(c), o = lastOil(c), open = carOpen.has(c.id) || store.cars.length === 1;
   const hist = (c.oil || []).slice().sort((a, b) => a.d < b.d ? 1 : -1);
-  return h("section", { class: "panel car" },
-    h("div", { class: "sec-h" },
-      h("div", { class: "mcol" }, h("h2", {}, c.name), h("small", { class: "muted" }, c.owner ? "Savininkas: " + c.owner : "Savininkas nenurodytas")),
-      c.plate ? h("span", { class: "plate" }, c.plate) : null),
+  const worst = carWorst(c);
+  const head = h("button", { class: "carhead", "aria-expanded": String(open), on: { click: () => { if (carOpen.has(c.id)) carOpen.delete(c.id); else carOpen.add(c.id); renderCars(); } } },
+    h("div", { class: "mcol" }, h("h2", {}, c.name), h("small", { class: "muted" }, c.owner ? "Savininkas: " + c.owner : "Savininkas nenurodytas")),
+    h("span", { class: "rr" }, c.plate ? h("span", { class: "plate" }, c.plate) : null,
+      !open && worst ? h("span", { class: "dotw" + (worst > 1 ? " bad" : ""), title: "Reikia dėmesio" }) : null,
+      h("span", { class: "chev" + (open ? " up" : "") }, icon("next"))));
+  if (!open) return h("section", { class: "panel car closed" }, head,
+    h("p", { class: "muted csum" }, [c.insp ? "Technikinė: " + is.txt.toLowerCase() : null, o && o.next ? "Tepalai: " + os.txt.toLowerCase() : null].filter(Boolean).join(" · ") || "Paspausk, kad išskleistum"));
+  return h("section", { class: "panel car" }, head,
     h("div", { class: "crow" },
-      h("div", { class: "mcol" }, h("b", {}, "Technikinė apžiūra"), h("small", { class: "muted" }, c.insp ? "Galioja iki " + fromIso(c.insp).toLocaleDateString("lt-LT", { year: "numeric", month: "long", day: "numeric" }) : "Data neįrašyta")),
+      h("div", { class: "mcol" }, h("b", {}, "Technikinė apžiūra"), h("small", { class: "muted" }, c.insp ? "Galioja iki " + longDate(c.insp) : "Data neįrašyta")),
       h("span", { class: "tag" + is.cls }, is.txt)),
     h("div", { class: "crow" },
       h("div", { class: "mcol" }, h("b", {}, "Tepalai"),
@@ -1389,6 +1468,8 @@ function carCard(c) {
     os.frac != null ? h("div", { class: "meter k" + (os.lvl ? " over" : "") }, h("i", { style: "width:" + os.frac * 100 + "%" })) : null,
     h("div", { class: "crow" }, h("div", { class: "mcol" }, h("b", {}, "Dabartinė rida"), h("small", { class: "muted" }, c.kmD ? "Atnaujinta " + fmtDate(c.kmD) : "")),
       h("button", { class: "link", on: { click: () => openKm(c) } }, km(curKm(c)) + " ›")),
+    store.carFields.map(f => fieldRow(c, f)),
+    h("button", { class: "addfield", on: { click: () => openField(null, c) } }, "+ Naujas laukelis (pvz. draudimo pabaiga)"),
     h("div", { class: "row2" },
       h("button", { class: "btn", on: { click: () => openOil(c) } }, "Tepalų keitimas"),
       h("button", { class: "btn ghost", on: { click: () => openCar(c) } }, "Redaguoti")),
@@ -1397,12 +1478,13 @@ function carCard(c) {
         h("span", { class: "mcol" }, h("b", {}, fmtDate(x.d) + " · " + km(x.km)), h("small", { class: "muted" }, (x.next ? "kitas ties " + km(x.next) : "") + (x.note ? (x.next ? " · " : "") + x.note : ""))), icon("next"))))) : null);
 }
 function renderCars() {
-  const cars = store.cars.slice().sort((a, b) => Math.max(inspState(b).lvl, oilState(b).lvl) - Math.max(inspState(a).lvl, oilState(a).lvl));
+  const cars = store.cars.slice().sort((a, b) => carWorst(b) - carWorst(a));
   shell("car",
-    h("header", { class: "top" }, h("div", {}, h("p", { class: "eyebrow" }, cars.length + (cars.length === 1 ? " automobilis" : cars.length > 1 && cars.length < 10 ? " automobiliai" : " automobilių")), h("h1", {}, "Transportas"))),
-    cars.length ? cars.map(carCard) : h("section", { class: "panel" }, h("h3", {}, "Dar nėra automobilių"),
+    h("header", { class: "top" }, h("div", {}, h("p", { class: "eyebrow" }, cars.length + (cars.length === 1 ? " transporto priemonė" : cars.length > 1 && cars.length < 10 ? " transporto priemonės" : " transporto priemonių")), h("h1", {}, "Transportas")),
+      cars.length > 1 ? h("button", { class: "link", on: { click: () => { const all = cars.every(c => carOpen.has(c.id)); cars.forEach(c => all ? carOpen.delete(c.id) : carOpen.add(c.id)); renderCars(); } } }, cars.every(c => carOpen.has(c.id)) ? "Suskleisti visas" : "Išskleisti visas") : null),
+    cars.length ? cars.map(carCard) : h("section", { class: "panel" }, h("h3", {}, "Dar nėra transporto priemonių"),
       h("p", { class: "muted" }, "Pridėk automobilį ir įrašyk, iki kada galioja technikinė apžiūra ir kada keisti tepalus. Programėlė primins, kai artės terminas.")),
-    h("button", { class: "btn block" + (cars.length ? " ghost" : ""), on: { click: () => openCar() } }, "+ Pridėti automobilį"));
+    h("button", { class: "btn block" + (cars.length ? " ghost" : ""), on: { click: () => openCar() } }, "+ Pridėti transporto priemonę"));
 }
 function carAlerts() {
   const out = [];
@@ -1410,6 +1492,10 @@ function carAlerts() {
     const is = inspState(c), os = oilState(c);
     if (is.lvl) out.push({ c, t: c.name + ": technikinė " + (is.d < 0 ? "pasibaigė" : "baigiasi po " + is.d + " d."), lvl: is.lvl });
     if (os.lvl) out.push({ c, t: c.name + ": tepalai, " + os.txt.toLowerCase(), lvl: os.lvl });
+    for (const f of store.carFields.filter(f => f.type === "date")) {
+      const st = dateState((c.f || {})[f.id]);
+      if (st.lvl) out.push({ c, t: c.name + ": " + f.name.toLowerCase() + " " + (st.d < 0 ? "pasibaigė" : "po " + st.d + " d."), lvl: st.lvl });
+    }
   }
   return out;
 }
